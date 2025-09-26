@@ -18,21 +18,21 @@ class Directions(Enum):
 @dataclass
 class Food:
     pos: tuple
-    is_super: bool
-
+    health: int = 4
 
 @dataclass
 class Stone:
     pos: tuple
 
+@dataclass
+class BugBlaster:
+    pos: tuple
 
 @dataclass
-class Snake:
+class Centipede:
     body: list
     direction: Directions
-    score: int
     name: str
-    traverse: bool
 
 
 @dataclass

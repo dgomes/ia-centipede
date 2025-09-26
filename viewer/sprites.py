@@ -2,7 +2,7 @@ import pygame
 from collections import deque
 
 from .spritesheet import SpriteSheet, CELL_SIZE
-from .common import Directions, Snake, Food, Stone, ScoreBoard, get_direction
+from .common import Directions, Centipede, Food, Stone, ScoreBoard, get_direction
 
 from dataclasses import dataclass
 
@@ -39,7 +39,7 @@ class GameInfoSprite(pygame.sprite.Sprite):
         )
 
 class GameStateSprite(pygame.sprite.Sprite):
-    def __init__(self, player: Snake, pos: int, WIDTH, HEIGHT, SCALE):
+    def __init__(self, player: str, pos: int, WIDTH, HEIGHT, SCALE):
         self.font = pygame.font.Font(None, int(SCALE))
         super().__init__()
 
@@ -54,11 +54,10 @@ class GameStateSprite(pygame.sprite.Sprite):
         self.image.fill("white")
         self.image.set_colorkey("white")
 
-        traverse = "[T]" if self.player.traverse else ""
 
         self.image.blit(
             self.font.render(
-                f"{self.player.name} {traverse}: {self.player.score}",
+                f"{self.player} : 0", # TODO score
                 True,
                 "purple",
                 "white",
@@ -176,10 +175,7 @@ class FoodSprite(pygame.sprite.Sprite):
     def __init__(self, food: Food, WIDTH, HEIGHT, SCALE):
         super().__init__()
 
-        if food.is_super:
-            FOOD_SPRITESHEET = SpriteSheet("data/snake-graphics-bw.png")
-        else:
-            FOOD_SPRITESHEET = SpriteSheet("data/snake-graphics.png")
+        FOOD_SPRITESHEET = SpriteSheet("data/snake-graphics.png")
 
         self.food = food
         self.SCALE = SCALE
@@ -202,9 +198,36 @@ class FoodSprite(pygame.sprite.Sprite):
             (self.SCALE * self.food.pos[0], self.SCALE * self.food.pos[1]),
         )
 
+class BugBlasterSprite(pygame.sprite.Sprite):
+    def __init__(self, pos: tuple[int, int], WIDTH, HEIGHT, SCALE):
+        super().__init__()
+
+        BUGBLASTER_SPRITESHEET = SpriteSheet("data/snake-graphics.png")
+
+        self.pos = pos
+        self.SCALE = SCALE
+
+        bugblaster_image_rect = (1 * CELL_SIZE, 1 * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+        self.bugblaster_image = BUGBLASTER_SPRITESHEET.image_at(bugblaster_image_rect, -1)
+        self.bugblaster_image = pygame.transform.scale(self.bugblaster_image, (SCALE, SCALE))
+
+        self.image = pygame.Surface([WIDTH * SCALE, HEIGHT * SCALE])
+        self.rect = self.image.get_rect()
+        self.update()
+
+    def update(self):
+        self.image.fill("white")
+        self.image.set_colorkey("white")
+
+        # Render Bug Blaster
+        self.image.blit(
+            self.bugblaster_image,
+            (self.SCALE * self.pos[0], self.SCALE * self.pos[1]),
+        )
+
 
 class SnakeSprite(pygame.sprite.Sprite):
-    def __init__(self, snake: Snake, WIDTH, HEIGHT, SCALE):
+    def __init__(self, snake: Centipede, WIDTH, HEIGHT, SCALE):
         super().__init__()
 
         SNAKE_SPRITESHEET = SpriteSheet("data/snake-graphics.png")

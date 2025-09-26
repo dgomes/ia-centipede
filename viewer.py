@@ -17,8 +17,9 @@ logger_websockets.setLevel(logging.WARN)
 logger = logging.getLogger("Viewer")
 logger.setLevel(logging.DEBUG)
 
-from viewer.common import Directions, Food, Snake, Stone, ScoreBoard, get_direction
+from viewer.common import Directions, Food, Centipede, Stone, ScoreBoard, get_direction, BugBlaster
 from viewer.sprites import (
+    BugBlasterSprite,
     Info,
     GameStateSprite,
     GameInfoSprite,
@@ -66,10 +67,11 @@ async def main(SCALE):
     display = pygame.display.set_mode((SCALE * WIDTH, SCALE * HEIGHT))
 
     all_sprites = pygame.sprite.Group()
-    snake_sprites = pygame.sprite.Group()
+    centipede_sprites = pygame.sprite.Group()
     food_sprites = pygame.sprite.Group()
     stone_sprites = pygame.sprite.Group()
-    prev_foods = None
+    bugblaster_sprites = pygame.sprite.Group()
+    prev_mushrooms = None
 
     step_info = Info(text="0")
 
@@ -78,12 +80,11 @@ async def main(SCALE):
 
         try:
             state = json.loads(q.get_nowait())
-            pprint.pprint(state)
+            pprint.pprint(state)              
 
-            if "snakes" in state and "food" in state:
-                snakes_update = state["snakes"]
-                foods_update = state["food"]
-                foods_update = state["food"]
+            if "centipedes" in state and "mushrooms" in state:
+                centipedes_update = state["centipedes"]
+                mushrooms_update = state["mushrooms"]
                 step_info.text = f"Step: {state['step']}"
             elif "highscores" in state:
                 all_sprites.add(
@@ -104,17 +105,17 @@ async def main(SCALE):
             continue
 
         # Update Foods
-        if new_game or prev_foods != foods_update:
+        if new_game or prev_mushrooms != mushrooms_update:
             food_sprites.empty()
 
             foods = {
-                f"{food}": Food(pos=(food[0], food[1]), is_super=food[2] == "SUPER")
-                for food in foods_update
+                f"{food}": Food(pos=(food["pos"][0], food["pos"][1])) #TODO pass heatlh
+                for food in mushrooms_update
             }
             food_sprites.add(
                 [FoodSprite(food, WIDTH, HEIGHT, SCALE) for food in foods.values()]
             )
-            prev_foods = foods_update
+            prev_mushrooms = mushrooms_update
 
         # Update Stones
         if new_game:
@@ -125,57 +126,59 @@ async def main(SCALE):
                             StoneSprite(Stone(pos=(x, y)), WIDTH, HEIGHT, SCALE)
                         )
 
-        # Update Snakes
+        # Update centipedes
         if new_game or not all(
             [
-                snake["name"] in [s.name for s in snakes.values()]
-                for snake in snakes_update
+                centipede["name"] in [s.name for s in centipedes.values()]
+                for centipede in centipedes_update
             ]
         ):
             all_sprites.empty()
-            snake_sprites.empty()
+            centipede_sprites.empty()
 
-            snakes = {
-                snake["name"]: Snake(
-                    body=snake["body"],
+            centipedes = {
+                centipede["name"]: Centipede(
+                    body=centipede["body"],
                     direction=Directions.RIGHT,
-                    score=snake["score"],
-                    name=snake["name"],
-                    traverse=snake["traverse"],
+                    name=centipede["name"],
                 )
-                for snake in snakes_update
+                for centipede in centipedes_update
             }
 
             all_sprites.add(GameInfoSprite(step_info, WIDTH-len(step_info.text), 0, WIDTH, SCALE))
 
             all_sprites.add(
                 [
-                    GameStateSprite(snake, i, WIDTH, HEIGHT, SCALE)
-                    for i, snake in enumerate(snakes.values())
+                    GameStateSprite(centipede, i, WIDTH, HEIGHT, SCALE)
+                    for i, centipede in enumerate(centipedes.values())
                 ]
             )
 
-            snake_sprites.add(
-                [SnakeSprite(snake, WIDTH, HEIGHT, SCALE) for snake in snakes.values()]
+            centipede_sprites.add(
+                [SnakeSprite(centipede, WIDTH, HEIGHT, SCALE) for centipede in centipedes.values()]
             )
 
         else:
-            for snake in snakes_update:
-                snakes[snake["name"]].body = snake["body"]
-                head = snake["body"][0]
-                neck = snake["body"][1]
-                snakes[snake["name"]].direction = get_direction(
+            for centipede in centipedes_update:
+                centipedes[centipede["name"]].body = centipede["body"]
+                head = centipede["body"][0]
+                neck = centipede["body"][1]
+                centipedes[centipede["name"]].direction = get_direction(
                     head[0], head[1], neck[0], neck[1], HEIGHT=HEIGHT, WIDTH=WIDTH
                 )
-                snakes[snake["name"]].score = snake["score"]
-                snakes[snake["name"]].traverse = snake["traverse"]
 
-            # Remove dead snakes
-            for snake in snakes.values():
-                if snake.name not in [s["name"] for s in snakes_update]:
-                    snake_sprites.remove(
-                        [s for s in snake_sprites if s.snake.name == snake.name]
+            # Remove dead centipedes
+            for centipede in centipedes.values():
+                if centipede.name not in [s["name"] for s in centipedes_update]:
+                    centipede_sprites.remove(
+                        [s for s in centipede_sprites if s.centipede.name == centipede.name]
                     )
+
+        # update bug blaster
+        if 'bug_blaster' in state:
+            bugblaster_sprites.empty()
+            bugblaster = BugBlaster(pos=state["bug_blaster"]["pos"])
+            bugblaster_sprites.add(BugBlasterSprite(bugblaster.pos, WIDTH, HEIGHT, SCALE))
 
         new_game = False
 
@@ -184,15 +187,17 @@ async def main(SCALE):
 
         try:
             all_sprites.update()
-            snake_sprites.update()
+            centipede_sprites.update()
             food_sprites.update()
             stone_sprites.update()
+            bugblaster_sprites.update()
         except Exception as e:
             logging.error(e)
         stone_sprites.draw(display)
         food_sprites.draw(display)
         all_sprites.draw(display)
-        snake_sprites.draw(display)
+        centipede_sprites.draw(display)
+        bugblaster_sprites.draw(display)
 
         # update window
         pygame.display.flip()

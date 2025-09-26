@@ -70,10 +70,10 @@ class GameServer:
             logger.info(
                 "Saving: %s <%s>",
                 player,
-                self.game.snakes[player].score,
+                self.game.score,
             )
 
-            self._highscores.append((player, self.game.snakes[player].score))
+            self._highscores.append((player, self.game.score))
             self._highscores = sorted(
                 self._highscores, key=lambda s: s[1], reverse=True
             )[:MAX_HIGHSCORES]
@@ -94,6 +94,7 @@ class GameServer:
             try:
                 await client.send(json.dumps(info))
             except Exception:
+                logger.error("Could not send %s to client %s, removing", info, client)
                 to_remove.append(client)
                 await client.close()
         for client in to_remove:
@@ -163,25 +164,16 @@ class GameServer:
                     if self.game._step == 0:  # Starting a level ? Let's send the info
                         game_info = self.game.info()
 
+                        print("send viewers")
                         await self.send_clients(self.viewers, game_info)
+                        print("send players")
                         await self.send_clients(self.game_player, game_info)
 
                     if state := await self.game.next_frame():
                         await self.send_clients(self.viewers, state)
 
-                        snakes = state["snakes"]
-                        del state[
-                            "snakes"
-                        ]  # remove snakes from state as we only send our snake sight
-                        del state[
-                            "food"
-                        ]  # remove food from state as we only send our snake sight
-
                         for player in game_players:
                             state["ts"] = datetime.now().isoformat()
-                            for player_snake in snakes:
-                                if player_snake["name"] == player.name:
-                                    state = {**state, **player_snake}
                             try:
                                 await player.ws.send(json.dumps(state))
                             except Exception as e:
@@ -209,7 +201,7 @@ class GameServer:
                         for player in game_players:
                             game_record = {
                                 "player": player.name,
-                                "score": self.game.snakes[player.name].score,
+                                "score": self.game.score,
                                 "players": self.number_of_players, 
                             }
                             requests.post(self.grading, json=game_record, timeout=2)

@@ -2,7 +2,7 @@ import logging
 import random
 import math
 
-from consts import Direction, Tiles, VITAL_SPACE, NEST_SIZE
+from consts import Direction, Tiles, CENTIPEDE_LENGTH
 
 logger = logging.getLogger("Map")
 logger.setLevel(logging.DEBUG)
@@ -11,23 +11,22 @@ class Map:
     def __init__(
         self,
         level=1,
-        size=(VITAL_SPACE + 10, VITAL_SPACE + 10),
+        size=(100, 100),
         mapa=None,
     ):
-        assert size[0] > VITAL_SPACE + 9
-        assert size[1] > VITAL_SPACE + 9
 
         self._level = level
         self._size = size
         self._stones = []
-        self._food = []
+        self._mushrooms = []
         self._snake_nests = []
 
         if not mapa:
             logger.info("Generating a MAP")
             self.map = [[Tiles.PASSAGE] * self.ver_tiles for _ in range(self.hor_tiles)]
 
-            # add stones
+            # add stones TODO if required more difficult levels
+            '''
             for _ in range(10):
                 x, y = random.randint(0, self.hor_tiles - 1), random.randint(
                     0, self.ver_tiles - 1
@@ -43,40 +42,34 @@ class Map:
                 )[:wall_length]:
                     self.map[xx][y] = Tiles.STONE
                     self._stones.append((xx, y))
+            '''
+            # add mushrooms
+            for _ in range(int(self.hor_tiles * self.ver_tiles * 0.1)):  # 10% of map
+                x, y = random.randint(0, self.hor_tiles - 1), random.randint(
+                    0, self.ver_tiles - 1
+                )
+                if self.map[x][y] == Tiles.PASSAGE:
+                    self.map[x][y] = Tiles.FOOD
+                    self._mushrooms.append((x, y))
+
+            # clean up bottom rows for bug blaster
+            for x in range(self.hor_tiles):
+                for y in range(self.ver_tiles - 5, self.ver_tiles):
+                    if self.map[x][y] == Tiles.FOOD:
+                        self._mushrooms.remove((x, y))
+                    if self.map[x][y] == Tiles.STONE:
+                        self._stones.remove((x, y))
+                    self.map[x][y] = Tiles.PASSAGE
+
 
         else:
             logger.info("Loading MAP")
             self.map = mapa
 
     @property
-    def food(self):
-        return [(x, y, self.map[x][y].name) for x, y in self._food]
+    def mushrooms(self):
+        return [(x, y, self.map[x][y].name) for x, y in self._mushrooms]
 
-    def spawn_snake(self):
-        x = random.randint(0, self.hor_tiles - 1)
-        y = random.randint(0, self.ver_tiles - 1)
-        while any((x, y) in nest for nest in self._snake_nests):
-            x = random.randint(0, self.hor_tiles - 1)
-            y = random.randint(0, self.ver_tiles - 1)
-        self._snake_nests.append([(a, b) for a in range(x - NEST_SIZE, x + NEST_SIZE) for b in range(y - NEST_SIZE, y + NEST_SIZE)])
-        return x, y
-
-    def spawn_food(self, food_type=Tiles.FOOD):
-        x = random.randint(0, self.hor_tiles - 1)
-        y = random.randint(0, self.ver_tiles - 1)
-        while (x, y) in self._food or (x, y) in self._stones:
-            x = random.randint(0, self.hor_tiles - 1)
-            y = random.randint(0, self.ver_tiles - 1)
-        self.map[x][y] = food_type
-        self._food.append((x, y))
-        logger.debug("Food spawned at %s", self._food[-1])
-
-    def eat_food(self, pos):
-        x, y = pos
-        old = self.map[x][y]
-        self.map[x][y] = Tiles.PASSAGE
-        self._food.remove((x, y))
-        return old
 
     @property
     def hor_tiles(self):
@@ -100,27 +93,17 @@ class Map:
     def level(self):
         return self._level
 
-    @property
-    def digdug_spawn(self):
-        return self._digdug_spawn
+    def spawn_centipede(self):
+        return [(x, 0) for x in range(CENTIPEDE_LENGTH)]
+
+    def spawn_bug_blaster(self):
+        pos = (int(self.hor_tiles/2), self.ver_tiles-1)
+        print("spawn bug blaster %s", pos)
+        return pos
 
     def get_tile(self, pos: tuple[int, int]):
         x, y = pos
         return self.map[x][y]
-
-    def get_zone(self, pos: tuple[int, int], size: int):
-        zone: dict[int, dict[int, Tiles]] = {}
-        x, y = pos
-        for i in range(x - size, x + size + 1):
-            for j in range(y - size, y + size + 1):
-                if math.dist((x, y), (i, j)) <= size:
-                    ii = i % self.hor_tiles
-                    jj = j % self.ver_tiles
-                    if ii not in zone:
-                        zone[ii] = {}
-                    zone[ii][jj] = self.map[ii][jj]
-
-        return zone
 
     def is_blocked(self, pos, traverse):
         x, y = pos
