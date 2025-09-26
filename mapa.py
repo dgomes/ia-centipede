@@ -12,6 +12,7 @@ class Map:
         self,
         level=1,
         size=(100, 100),
+        mushroom_percentage=0,          # TODO set to 0.1
         mapa=None,
     ):
 
@@ -44,7 +45,7 @@ class Map:
                     self._stones.append((xx, y))
             '''
             # add mushrooms
-            for _ in range(int(self.hor_tiles * self.ver_tiles * 0.1)):  # 10% of map
+            for _ in range(int(self.hor_tiles * self.ver_tiles * mushroom_percentage)):  # 10% of map
                 x, y = random.randint(0, self.hor_tiles - 1), random.randint(
                     0, self.ver_tiles - 1
                 )

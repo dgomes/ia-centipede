@@ -2,7 +2,7 @@ import pygame
 from collections import deque
 
 from .spritesheet import SpriteSheet, CELL_SIZE
-from .common import Directions, Centipede, Food, Stone, ScoreBoard, get_direction
+from .common import Directions, Centipede, Food, Stone, Blast, ScoreBoard, get_direction
 
 from dataclasses import dataclass
 
@@ -171,6 +171,33 @@ class StoneSprite(pygame.sprite.Sprite):
         )
 
 
+class BlastSprite(pygame.sprite.Sprite):
+    def __init__(self, blast: Blast, WIDTH, HEIGHT, SCALE):
+        super().__init__()
+
+        self.blast = blast
+        self.SCALE = SCALE
+
+        rect = pygame.Rect((0, 3 * SCALE, SCALE, SCALE))
+        self.blast_image = pygame.Surface(rect.size)
+
+        self.blast_image.fill("red")
+
+        self.image = pygame.Surface([WIDTH * SCALE, HEIGHT * SCALE])
+        self.rect = self.image.get_rect()
+        self.update()
+
+    def update(self):
+        self.image.fill("white")
+        self.image.set_colorkey("white")
+
+        # Render Blast
+        self.image.blit(
+            self.blast_image,
+            (self.SCALE * self.blast.pos[0], self.SCALE * self.blast.pos[1]),
+        )
+
+
 class FoodSprite(pygame.sprite.Sprite):
     def __init__(self, food: Food, WIDTH, HEIGHT, SCALE):
         super().__init__()
@@ -226,13 +253,13 @@ class BugBlasterSprite(pygame.sprite.Sprite):
         )
 
 
-class SnakeSprite(pygame.sprite.Sprite):
-    def __init__(self, snake: Centipede, WIDTH, HEIGHT, SCALE):
+class CentipedeSprite(pygame.sprite.Sprite):
+    def __init__(self, centipede: Centipede, WIDTH, HEIGHT, SCALE):
         super().__init__()
 
         SNAKE_SPRITESHEET = SpriteSheet("data/snake-graphics.png")
 
-        self.snake = snake
+        self.centipede = centipede
         self.HEIGHT = HEIGHT
         self.WIDTH = WIDTH
         self.SCALE = SCALE
@@ -261,7 +288,7 @@ class SnakeSprite(pygame.sprite.Sprite):
         }
 
         # Load and resize images to SCALE
-        self.snake_images = {
+        self.centipede_images = {
             name: pygame.transform.scale(
                 SNAKE_SPRITESHEET.image_at(
                     (a * CELL_SIZE, b * CELL_SIZE, CELL_SIZE, CELL_SIZE), -1
@@ -280,28 +307,31 @@ class SnakeSprite(pygame.sprite.Sprite):
         self.image.set_colorkey("white")
 
         # Get Head
-        prev_x, prev_y = self.snake.body[0]
+        prev_x, prev_y = self.centipede.body[0]
+        part = "head" if len(self.centipede.body) == 1 else "tail"
+        self.image.blit(
+            self.centipede_images[(part, self.centipede.direction)], (self.SCALE * prev_x, self.SCALE * prev_y)
+        )
         prev_dir = None
 
         # Walk from 1st body position towards tail
-        for x, y in self.snake.body[1:]:
+        for x, y in self.centipede.body[1:]:
             dir = get_direction(x, y, prev_x, prev_y, self.HEIGHT, self.WIDTH)
-            if prev_dir is None:
-                image = ("head", self.snake.direction)
-            else:
-                image = (prev_dir, dir)
+            image = (prev_dir, dir)
 
             # blit previous body part now that we now directions taken
-            if image in self.snake_images:  # TODO remove this check
+            if image in self.centipede_images:  # TODO remove this check
                 self.image.blit(
-                    self.snake_images[image], (self.SCALE * prev_x, self.SCALE * prev_y)
+                    self.centipede_images[image], (self.SCALE * prev_x, self.SCALE * prev_y)
                 )
 
             prev_x, prev_y = x, y
             prev_dir = dir
 
         # Finally blit tail
-        self.image.blit(
-            self.snake_images[("tail", prev_dir)],
-            (self.SCALE * prev_x, self.SCALE * prev_y),
-        )
+        if prev_dir is not None:
+            # blit previous body part now that we now directions taken
+            self.image.blit(
+                self.centipede_images[("head", prev_dir)],
+                (self.SCALE * prev_x, self.SCALE * prev_y),
+            )

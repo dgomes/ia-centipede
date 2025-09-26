@@ -17,13 +17,14 @@ logger_websockets.setLevel(logging.WARN)
 logger = logging.getLogger("Viewer")
 logger.setLevel(logging.DEBUG)
 
-from viewer.common import Directions, Food, Centipede, Stone, ScoreBoard, get_direction, BugBlaster
+from viewer.common import Blast, Directions, Food, Centipede, Stone, ScoreBoard, get_direction, BugBlaster
 from viewer.sprites import (
+    BlastSprite,
     BugBlasterSprite,
     Info,
     GameStateSprite,
     GameInfoSprite,
-    SnakeSprite,
+    CentipedeSprite,
     FoodSprite,
     StoneSprite,
     ScoreBoardSprite,
@@ -155,17 +156,20 @@ async def main(SCALE):
             )
 
             centipede_sprites.add(
-                [SnakeSprite(centipede, WIDTH, HEIGHT, SCALE) for centipede in centipedes.values()]
+                [CentipedeSprite(centipede, WIDTH, HEIGHT, SCALE) for centipede in centipedes.values()]
             )
 
         else:
             for centipede in centipedes_update:
                 centipedes[centipede["name"]].body = centipede["body"]
                 head = centipede["body"][0]
-                neck = centipede["body"][1]
-                centipedes[centipede["name"]].direction = get_direction(
-                    head[0], head[1], neck[0], neck[1], HEIGHT=HEIGHT, WIDTH=WIDTH
-                )
+                if len(centipede["body"]) > 1:
+                    neck = centipede["body"][1]
+                    centipedes[centipede["name"]].direction = get_direction(
+                        head[0], head[1], neck[0], neck[1], HEIGHT=HEIGHT, WIDTH=WIDTH
+                    )
+                else:
+                    centipedes[centipede["name"]].direction = Directions.RIGHT
 
             # Remove dead centipedes
             for centipede in centipedes.values():
@@ -179,6 +183,10 @@ async def main(SCALE):
             bugblaster_sprites.empty()
             bugblaster = BugBlaster(pos=state["bug_blaster"]["pos"])
             bugblaster_sprites.add(BugBlasterSprite(bugblaster.pos, WIDTH, HEIGHT, SCALE))
+
+            for blast in state.get("blasts", []):
+                bugblaster_sprites.add(BlastSprite(Blast(blast), WIDTH, HEIGHT, SCALE))   
+
 
         new_game = False
 

@@ -29,6 +29,10 @@ class BugBlaster:
     pos: tuple
 
 @dataclass
+class Blast:
+    pos: tuple
+
+@dataclass
 class Centipede:
     body: list
     direction: Directions
@@ -44,7 +48,8 @@ def get_direction(x, y, prev_x, prev_y, HEIGHT, WIDTH):
     """given 2 coordinates returns direction taken.
     HEIGHT and WIDTH are the dimensions of the board and enable proper handling of the edges when the snake wraps around.
     """
-    dir = None
+    dir = Directions.RIGHT #default
+
     if x - prev_x == WIDTH - 1:
         dir = Directions.LEFT
     elif x - prev_x == -(WIDTH - 1):

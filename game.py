@@ -73,7 +73,7 @@ class Centipede:
 
     @property
     def __str__(self) -> str:
-        return f"{self.name}({self._pos})"
+        return f"{self.name}({self._body}) - dir={self.direction}"
     
     @property
     def json(self):
@@ -119,14 +119,30 @@ class Centipede:
     def collision(self, pos):
         return pos in self._body
 
+    def reverse_direction(self):
+        self._body.reverse()
+        if self.direction == Direction.EAST:
+            self._direction = Direction.WEST
+        elif self.direction == Direction.WEST:
+            self._direction = Direction.EAST
+        elif self.direction == Direction.NORTH:
+            self._direction = Direction.SOUTH
+        elif self.direction == Direction.SOUTH:
+            self._direction = Direction.NORTH
+
     def take_hit(self, blast):
         if blast in self._body:
             index = self._body.index(blast)
-            new_centipede = self._body[index + 1 :]
+            old_body = self._body.copy()
+            new_body = self._body[index + 1 :]
+            self._body = self._body[: index]
+
+            print(f"Centipede {self.name}({old_body}) was hit at {blast}, new body {self._body}, new centipede {new_body}")
+
             if len(self._body) < 1:
                 self.kill()
-            else:
-                return Centipede(self._name, *new_centipede[0])
+            return new_body
+        return []
         
 
     def _calc_dir(self, old_pos, new_pos):
@@ -185,12 +201,16 @@ class BugBlaster:
         return self._alive
     
     @property
+    def pos(self):
+        return self._pos
+    
+    @property
     def json(self):
         return {"pos": self._pos, "score": self._score, "alive": self._alive}
 
     def kill(self):
         self._alive = False
-        logger.info("BugBlaster <%s> was killed", self)
+        logger.info("BugBlaster <%s> was killed", self.pos)
 
 class Mushroom:
     def __init__(self, x=1, y=1):
@@ -257,6 +277,10 @@ class Game:
     def score(self):
         return self._score
 
+    @score.setter
+    def score(self, value):
+        self._score = value
+
     @property
     def centipedes(self):
         return self._centipedes
@@ -296,13 +320,35 @@ class Game:
     def keypress(self, player_name, key):
         self._last_key = key
 
+    def update_blasts(self):
+        self._blasts = [(b_x, b_y - 1) for (b_x, b_y) in self._blasts if b_y - 1 >= 0]
+        to_be_removed = []
+
+        for blast in self._blasts:
+            for mushroom in self._mushrooms:
+                if mushroom.collision(blast):
+                    to_be_removed.append(blast)
+                    mushroom.take_damage()
+                    logger.info("Mushroom %s was hit by a blast", mushroom)
+                    if not mushroom.exists():
+                        logger.info("Mushroom %s was destroyed", mushroom)
+                    break
+
+        for blast in to_be_removed:
+            self._score += 1
+            logger.info("Blast %s removed after hitting a mushroom", blast)
+            self._blasts.remove(blast)
+
+
     def update_bug_blaster(self):
         try:
+
             if not self._bug_blaster.exists():
                 return  # if bug_blaster is dead, we don't need to update it  
             lastkey = self._last_key
 
-            assert lastkey in "wasdp"
+            assert lastkey in "wasdA"
+
 
             # Update position
             self._bug_blaster.move(
@@ -314,9 +360,12 @@ class Game:
             )
 
             # Shoot
-            if lastkey == "p":
-                self._blasts.append(self._bug_blaster.head)
+            if lastkey == "A":
+                self._blasts.append(self._bug_blaster.pos)
                 logger.info("BugBlaster <%s> fired a blast", self._bug_blaster)
+                self._last_key = ""
+
+            #TODO weapon cooldown
 
 
         except AssertionError:
@@ -338,27 +387,39 @@ class Game:
 
             # check collisions between centipedes
             for centipede2 in self._centipedes:
-                if not centipede2.exists():
+                if not centipede2.exists() or centipede2 == centipede or centipede2.reverse_next_move:
                     continue
-                if centipede != centipede2 and centipede2.collision(centipede.head):
-                    centipede.reverse_next_move = True
-                    centipede2.reverse_next_move = True
+                if centipede2.collision(centipede.head):
+                    centipede.reverse_direction()
                     logger.info("Centipede <%s> collided with centipede <%s>", centipede.name, centipede2.name)
 
 
             # check collisions with blasters
+            to_be_removed = []
             for blast in self._blasts:    
-                if blast.collision(centipede.head):
-                    r = centipede.take_hit(blast)
-                    if r:
-                        self._centipedes.append(r)
+                if centipede.collision(blast):
+
+                    if (new_body := centipede.take_hit(blast)) != []:
+                        new_centipede = Centipede(centipede.name+"_"+str(random.randint(1, 100)), new_body) #TODO proper naming for child centipede
+
+                        new_centipede.reverse_direction()
+
+                        self._centipedes.append(new_centipede)
+
                         self.score += KILL_CENTIPEDE_BODY_POINTS
-                        logger.info("Centipede <%s> was hit by a blast and split", centipede)
+                        logger.info("Centipede <%s> was hit by a blast and split", centipede.name)
+
+                        to_be_removed.append(blast) 
+            self._blasts = [b for b in self._blasts if b not in to_be_removed]
+
 
             # check collisions with bug blaster
             if self._bug_blaster.exists() and centipede.collision(self._bug_blaster._pos):
                 self._bug_blaster.kill()
                 logger.info("BugBlaster <%s> was killed by centipede <%s>", self._bug_blaster, centipede)
+
+
+            #TODO move blasts collision with mushrooms to here
 
     async def next_frame(self):
         await asyncio.sleep(1.0 / self._game_speed)
@@ -380,9 +441,7 @@ class Game:
                 
                
         self.update_bug_blaster()
-
-        # update blasts
-        self._blasts = [(x, y) for x, y in self._blasts if y > 0]
+        self.update_blasts()
 
         self.collision()
 

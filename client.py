@@ -48,7 +48,7 @@ async def agent_loop(server_address="localhost:8000", agent_name="student"):
                         elif event.key == pygame.K_RIGHT:
                             key = "d"
                         elif event.key == pygame.K_SPACE:
-                            key = " "
+                            key = "A"
                         elif event.key == pygame.K_a:
                             key = "A"
                         elif event.key == pygame.K_b:
