@@ -17,7 +17,7 @@ logger_websockets.setLevel(logging.WARN)
 logger = logging.getLogger("Viewer")
 logger.setLevel(logging.DEBUG)
 
-from viewer.common import Blast, Directions, Food, Centipede, Stone, ScoreBoard, get_direction, BugBlaster
+from viewer.common import Blast, Directions, Food, Centipede, Stone, ScoreBoard, get_direction, BugBlaster, int2dir
 from viewer.sprites import (
     BlastSprite,
     BugBlasterSprite,
@@ -148,13 +148,6 @@ async def main(SCALE):
 
             all_sprites.add(GameInfoSprite(step_info, WIDTH-len(step_info.text), 0, WIDTH, SCALE))
 
-            all_sprites.add(
-                [
-                    GameStateSprite(centipede, i, WIDTH, HEIGHT, SCALE)
-                    for i, centipede in enumerate(centipedes.values())
-                ]
-            )
-
             centipede_sprites.add(
                 [CentipedeSprite(centipede, WIDTH, HEIGHT, SCALE) for centipede in centipedes.values()]
             )
@@ -169,7 +162,7 @@ async def main(SCALE):
                         head[0], head[1], neck[0], neck[1], HEIGHT=HEIGHT, WIDTH=WIDTH
                     )
                 else:
-                    centipedes[centipede["name"]].direction = Directions.RIGHT
+                    centipedes[centipede["name"]].direction = int2dir(centipede['direction'])
 
             # Remove dead centipedes
             for centipede in centipedes.values():

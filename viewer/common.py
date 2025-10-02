@@ -14,7 +14,6 @@ class Directions(Enum):
     LEFT = (-1, 0)
     RIGHT = (1, 0)
 
-
 @dataclass
 class Food:
     pos: tuple
@@ -43,6 +42,17 @@ class Centipede:
 class ScoreBoard:
     highscores: list[tuple[str, int]]
 
+def int2dir(i):
+    if i == 0:
+        return Directions.UP
+    elif i == 1:
+        return Directions.RIGHT
+    elif i == 2:
+        return Directions.DOWN
+    elif i == 3:
+        return Directions.LEFT
+    else:
+        raise ValueError(f"Invalid direction integer: {i}")
 
 def get_direction(x, y, prev_x, prev_y, HEIGHT, WIDTH):
     """given 2 coordinates returns direction taken.
