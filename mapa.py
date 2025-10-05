@@ -7,15 +7,15 @@ from consts import Direction, Tiles, CENTIPEDE_LENGTH
 logger = logging.getLogger("Map")
 logger.setLevel(logging.DEBUG)
 
+
 class Map:
     def __init__(
         self,
         level=1,
         size=(100, 100),
-        mushroom_percentage=0.1,          # TODO set to 0.1
+        mushroom_percentage=0.1,  # TODO set to 0.1
         mapa=None,
     ):
-
         self._level = level
         self._size = size
         self._stones = []
@@ -27,7 +27,7 @@ class Map:
             self.map = [[Tiles.PASSAGE] * self.ver_tiles for _ in range(self.hor_tiles)]
 
             # add stones TODO if required more difficult levels
-            '''
+            """
             for _ in range(10):
                 x, y = random.randint(0, self.hor_tiles - 1), random.randint(
                     0, self.ver_tiles - 1
@@ -43,9 +43,11 @@ class Map:
                 )[:wall_length]:
                     self.map[xx][y] = Tiles.STONE
                     self._stones.append((xx, y))
-            '''
+            """
             # add mushrooms
-            for _ in range(int(self.hor_tiles * self.ver_tiles * mushroom_percentage)):  # 10% of map
+            for _ in range(
+                int(self.hor_tiles * self.ver_tiles * mushroom_percentage)
+            ):  # 10% of map
                 x, y = random.randint(0, self.hor_tiles - 1), random.randint(
                     0, self.ver_tiles - 1
                 )
@@ -62,7 +64,6 @@ class Map:
                         self._stones.remove((x, y))
                     self.map[x][y] = Tiles.PASSAGE
 
-
         else:
             logger.info("Loading MAP")
             self.map = mapa
@@ -70,7 +71,6 @@ class Map:
     @property
     def mushrooms(self):
         return [(x, y, self.map[x][y].name) for x, y in self._mushrooms]
-
 
     @property
     def hor_tiles(self):
@@ -98,7 +98,7 @@ class Map:
         return [(x, 0) for x in range(CENTIPEDE_LENGTH)]
 
     def spawn_bug_blaster(self):
-        pos = (int(self.hor_tiles/2), self.ver_tiles-1)
+        pos = (int(self.hor_tiles / 2), self.ver_tiles - 1)
         print("spawn bug blaster %s", pos)
         return pos
 

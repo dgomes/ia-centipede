@@ -4,7 +4,15 @@ import random
 from collections import deque
 from unicodedata import name
 
-from consts import KILL_CENTIPEDE_BODY_POINTS, TIMEOUT, Direction, HISTORY_LEN, Tiles, COOL_DOWN, KILL_MUSHROOM_POINTS
+from consts import (
+    KILL_CENTIPEDE_BODY_POINTS,
+    TIMEOUT,
+    Direction,
+    HISTORY_LEN,
+    Tiles,
+    COOL_DOWN,
+    KILL_MUSHROOM_POINTS,
+)
 from mapa import Map
 
 logger = logging.getLogger("Game")
@@ -13,6 +21,7 @@ logger.setLevel(logging.DEBUG)
 INITIAL_SCORE = 0
 GAME_SPEED = 10  # frames per second
 MAP_SIZE = (48, 24)
+
 
 class Centipede:
     def __init__(self, player_name: str, segments: list[tuple[int, int]]):
@@ -74,7 +83,7 @@ class Centipede:
     @property
     def __str__(self) -> str:
         return f"{self.name}({self._body}) - dir={self.direction}"
-    
+
     @property
     def json(self):
         return {"name": self._name, "body": self._body, "direction": self._direction}
@@ -83,21 +92,25 @@ class Centipede:
         return len(self._body) > 0 and self._alive
 
     def move(self, mapa, mushrooms, centipedes):
-        
         # check map collisions
         new_pos = mapa.calc_pos(self.head, self.direction, traverse=False)
 
         # check collisions with other centipedes
         for centipede in centipedes:
-            if centipede.exists() and centipede.name != self.name and new_pos in centipede.body:
-                logger.info("Centipede <%s> collided with <%s>", centipede.name, self.name)
+            if (
+                centipede.exists()
+                and centipede.name != self.name
+                and new_pos in centipede.body
+            ):
+                logger.info(
+                    "Centipede <%s> collided with <%s>", centipede.name, self.name
+                )
                 self.reverse_direction()
                 return
 
-        #check mushroom collisions
+        # check mushroom collisions
         if new_pos in [mushroom.pos for mushroom in mushrooms]:
             new_pos = self.head
-
 
         if new_pos == self.head or self.reverse_next_move:
             # if we can't move to the new position, we banged against a wall
@@ -118,7 +131,9 @@ class Centipede:
             if new_pos in [mushroom.pos for mushroom in mushrooms]:
                 new_pos = self.head
 
-            self._direction = Direction.EAST if self.direction == Direction.WEST else Direction.WEST
+            self._direction = (
+                Direction.EAST if self.direction == Direction.WEST else Direction.WEST
+            )
             self.reverse_next_move = False
 
         self._body.append(new_pos)
@@ -145,15 +160,16 @@ class Centipede:
             index = self._body.index(blast)
             old_body = self._body.copy()
             new_body = self._body[index + 1 :]
-            self._body = self._body[: index]
+            self._body = self._body[:index]
 
-            logger.debug(f"Centipede {self.name}({old_body}) was hit at {blast}, new body {self._body}, new centipede {new_body}")
+            logger.debug(
+                f"Centipede {self.name}({old_body}) was hit at {blast}, new body {self._body}, new centipede {new_body}"
+            )
 
             if len(self._body) < 1:
                 self.kill()
             return new_body
         return []
-        
 
     def _calc_dir(self, old_pos, new_pos):
         if old_pos[0] < new_pos[0]:
@@ -171,6 +187,7 @@ class Centipede:
         )
         return None
 
+
 class BugBlaster:
     def __init__(self, pos):
         self._pos = pos
@@ -181,12 +198,11 @@ class BugBlaster:
     @property
     def direction(self):
         return self._direction
-    
 
     def move(self, mapa, direction: Direction, mushrooms):
         if direction is None:
             return
-        
+
         new_pos = self._pos
 
         if direction == Direction.NORTH:
@@ -208,11 +224,11 @@ class BugBlaster:
 
     def exists(self):
         return self._alive
-    
+
     @property
     def pos(self):
         return self._pos
-    
+
     @property
     def json(self):
         return {"pos": self._pos, "alive": self._alive}
@@ -220,6 +236,7 @@ class BugBlaster:
     def kill(self):
         self._alive = False
         logger.info("BugBlaster <%s> was killed", self.pos)
+
 
 class Mushroom:
     def __init__(self, x=1, y=1):
@@ -234,21 +251,21 @@ class Mushroom:
 
     def collision(self, pos):
         return pos == self._pos
-   
+
     def exists(self):
         return self._health > 0
-    
+
     @property
     def pos(self):
         return self._pos
 
     @property
     def health(self):
-        return self.health 
-    
+        return self.health
+
     def collision(self, pos):
         return pos == self._pos
-    
+
     @property
     def json(self):
         return {"pos": self._pos, "health": self._health}
@@ -349,16 +366,13 @@ class Game:
             logger.debug("Blast %s removed after hitting a mushroom", blast)
             self._blasts.remove(blast)
 
-
     def update_bug_blaster(self):
         try:
-
             if not self._bug_blaster.exists():
-                return  # if bug_blaster is dead, we don't need to update it  
+                return  # if bug_blaster is dead, we don't need to update it
             lastkey = self._last_key
 
             assert lastkey in "wasdA"
-
 
             # Update position
             self._bug_blaster.move(
@@ -384,8 +398,6 @@ class Game:
 
         return True
 
-
-
     def collision(self):
         if (
             not self._running
@@ -396,33 +408,38 @@ class Game:
             if not centipede.exists():
                 continue
 
-
             # check collisions with blasters
             to_be_removed = []
-            for blast in self._blasts:    
+            for blast in self._blasts:
                 if centipede.collision(blast):
-
                     if (new_body := centipede.take_hit(blast)) != []:
-                        new_centipede = Centipede(centipede.name+"_"+str(random.randint(1, 100)), new_body) #TODO proper naming for child centipede
+                        new_centipede = Centipede(
+                            centipede.name + "_" + str(random.randint(1, 100)), new_body
+                        )  # TODO proper naming for child centipede
 
                         self._centipedes.append(new_centipede)
 
-                        self._score += (KILL_CENTIPEDE_BODY_POINTS - blast[1])  # higher points for hitting higher up the screen
-                        logger.info("Centipede <%s> was hit by a blast and split", centipede.name)
+                        self._score += (
+                            KILL_CENTIPEDE_BODY_POINTS - blast[1]
+                        )  # higher points for hitting higher up the screen
+                        logger.info(
+                            "Centipede <%s> was hit by a blast and split",
+                            centipede.name,
+                        )
 
                         self._mushrooms.append(Mushroom(x=blast[0], y=blast[1]))
 
-                        to_be_removed.append(blast) 
+                        to_be_removed.append(blast)
             self._blasts = [b for b in self._blasts if b not in to_be_removed]
 
-
             # check collisions with bug blaster
-            if self._bug_blaster.exists() and centipede.collision(self._bug_blaster._pos):
+            if self._bug_blaster.exists() and centipede.collision(
+                self._bug_blaster._pos
+            ):
                 self._bug_blaster.kill()
                 logger.info("BugBlaster was killed by centipede <%s>", centipede.name)
 
-
-            #TODO move blasts collision with mushrooms to here
+            # TODO move blasts collision with mushrooms to here
 
     async def next_frame(self):
         await asyncio.sleep(1.0 / self._game_speed)
@@ -441,18 +458,21 @@ class Game:
         for centipede in self._centipedes:
             if centipede.alive:
                 centipede.move(self.map, self._mushrooms, self.centipedes)
-                
-               
+
         self.update_bug_blaster()
         self.update_blasts()
 
         self.collision()
 
         # clean up dead mushrooms
-        self._mushrooms = [mushroom for mushroom in self._mushrooms if mushroom.exists()]
+        self._mushrooms = [
+            mushroom for mushroom in self._mushrooms if mushroom.exists()
+        ]
 
         self._state = {
-            "centipedes": [centipede.json for centipede in self._centipedes if centipede.alive],
+            "centipedes": [
+                centipede.json for centipede in self._centipedes if centipede.alive
+            ],
             "bug_blaster": self._bug_blaster.json,
             "mushrooms": [mushroom.json for mushroom in self._mushrooms],
             "blasts": self._blasts,
@@ -461,7 +481,9 @@ class Game:
             "score": self.score,
         }
 
-        if not self.bug_blaster.exists() or all([not centipede.alive for centipede in self._centipedes]):
+        if not self.bug_blaster.exists() or all(
+            [not centipede.alive for centipede in self._centipedes]
+        ):
             self.stop()
 
         return self._state

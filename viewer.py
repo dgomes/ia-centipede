@@ -17,7 +17,17 @@ logger_websockets.setLevel(logging.WARN)
 logger = logging.getLogger("Viewer")
 logger.setLevel(logging.DEBUG)
 
-from viewer.common import Blast, Directions, Food, Centipede, Stone, ScoreBoard, get_direction, BugBlaster, int2dir
+from viewer.common import (
+    Blast,
+    Directions,
+    Food,
+    Centipede,
+    Stone,
+    ScoreBoard,
+    get_direction,
+    BugBlaster,
+    int2dir,
+)
 from viewer.sprites import (
     BlastSprite,
     BugBlasterSprite,
@@ -81,7 +91,7 @@ async def main(SCALE):
 
         try:
             state = json.loads(q.get_nowait())
-            pprint.pprint(state)              
+            pprint.pprint(state)
 
             if "centipedes" in state and "mushrooms" in state:
                 centipedes_update = state["centipedes"]
@@ -110,7 +120,9 @@ async def main(SCALE):
             food_sprites.empty()
 
             foods = {
-                f"{food}": Food(pos=(food["pos"][0], food["pos"][1])) #TODO pass heatlh
+                f"{food}": Food(
+                    pos=(food["pos"][0], food["pos"][1])
+                )  # TODO pass heatlh
                 for food in mushrooms_update
             }
             food_sprites.add(
@@ -146,10 +158,17 @@ async def main(SCALE):
                 for centipede in centipedes_update
             }
 
-            all_sprites.add(GameInfoSprite(game_info, WIDTH-len(game_info.text)/2, 0, WIDTH, SCALE))
+            all_sprites.add(
+                GameInfoSprite(
+                    game_info, WIDTH - len(game_info.text) / 2, 0, WIDTH, SCALE
+                )
+            )
 
             centipede_sprites.add(
-                [CentipedeSprite(centipede, WIDTH, HEIGHT, SCALE) for centipede in centipedes.values()]
+                [
+                    CentipedeSprite(centipede, WIDTH, HEIGHT, SCALE)
+                    for centipede in centipedes.values()
+                ]
             )
 
         else:
@@ -162,24 +181,31 @@ async def main(SCALE):
                         head[0], head[1], neck[0], neck[1], HEIGHT=HEIGHT, WIDTH=WIDTH
                     )
                 else:
-                    centipedes[centipede["name"]].direction = int2dir(centipede['direction'])
+                    centipedes[centipede["name"]].direction = int2dir(
+                        centipede["direction"]
+                    )
 
             # Remove dead centipedes
             for centipede in centipedes.values():
                 if centipede.name not in [s["name"] for s in centipedes_update]:
                     centipede_sprites.remove(
-                        [s for s in centipede_sprites if s.centipede.name == centipede.name]
+                        [
+                            s
+                            for s in centipede_sprites
+                            if s.centipede.name == centipede.name
+                        ]
                     )
 
         # update bug blaster
-        if 'bug_blaster' in state:
+        if "bug_blaster" in state:
             bugblaster_sprites.empty()
             bugblaster = BugBlaster(pos=state["bug_blaster"]["pos"])
-            bugblaster_sprites.add(BugBlasterSprite(bugblaster.pos, WIDTH, HEIGHT, SCALE))
+            bugblaster_sprites.add(
+                BugBlasterSprite(bugblaster.pos, WIDTH, HEIGHT, SCALE)
+            )
 
             for blast in state.get("blasts", []):
-                bugblaster_sprites.add(BlastSprite(Blast(blast), WIDTH, HEIGHT, SCALE))   
-
+                bugblaster_sprites.add(BlastSprite(Blast(blast), WIDTH, HEIGHT, SCALE))
 
         new_game = False
 

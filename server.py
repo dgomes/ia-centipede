@@ -99,7 +99,7 @@ class GameServer:
                 await client.close()
         for client in to_remove:
             if isinstance(original_group, dict):
-                del original_group[client]        
+                del original_group[client]
             else:
                 original_group.remove(client)
 
@@ -202,7 +202,7 @@ class GameServer:
                             game_record = {
                                 "player": player.name,
                                 "score": self.game.score,
-                                "players": self.number_of_players, 
+                                "players": self.number_of_players,
                             }
                             requests.post(self.grading, json=game_record, timeout=2)
                 except RequestException as err:
@@ -233,7 +233,9 @@ if __name__ == "__main__":
 
     async def main():
         """Start server tasks."""
-        g = GameServer(0, TIMEOUT, args.seed, args.players, args.grading_server, args.debug)
+        g = GameServer(
+            0, TIMEOUT, args.seed, args.players, args.grading_server, args.debug
+        )
 
         game_loop_task = asyncio.ensure_future(g.mainloop())
 
