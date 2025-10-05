@@ -202,7 +202,7 @@ class FoodSprite(pygame.sprite.Sprite):
     def __init__(self, food: Food, WIDTH, HEIGHT, SCALE):
         super().__init__()
 
-        FOOD_SPRITESHEET = SpriteSheet("data/snake-graphics.png")
+        FOOD_SPRITESHEET = SpriteSheet("data/centipede-graphics.png")
 
         self.food = food
         self.SCALE = SCALE
@@ -229,7 +229,7 @@ class BugBlasterSprite(pygame.sprite.Sprite):
     def __init__(self, pos: tuple[int, int], WIDTH, HEIGHT, SCALE):
         super().__init__()
 
-        BUGBLASTER_SPRITESHEET = SpriteSheet("data/snake-graphics.png")
+        BUGBLASTER_SPRITESHEET = SpriteSheet("data/centipede-graphics.png")
 
         self.pos = pos
         self.SCALE = SCALE
@@ -257,14 +257,14 @@ class CentipedeSprite(pygame.sprite.Sprite):
     def __init__(self, centipede: Centipede, WIDTH, HEIGHT, SCALE):
         super().__init__()
 
-        SNAKE_SPRITESHEET = SpriteSheet("data/snake-graphics.png")
+        SNAKE_SPRITESHEET = SpriteSheet("data/centipede-graphics.png")
 
         self.centipede = centipede
         self.HEIGHT = HEIGHT
         self.WIDTH = WIDTH
         self.SCALE = SCALE
 
-        snake_map = {
+        centipede_map = {
             ("head", Directions.UP): (3, 0),
             ("head", Directions.RIGHT): (4, 0),
             ("head", Directions.LEFT): (3, 1),
@@ -295,7 +295,7 @@ class CentipedeSprite(pygame.sprite.Sprite):
                 ),
                 (SCALE, SCALE),
             )
-            for (name, (a, b)) in snake_map.items()
+            for (name, (a, b)) in centipede_map.items()
         }
 
         self.image = pygame.Surface([WIDTH * SCALE, HEIGHT * SCALE])

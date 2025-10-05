@@ -177,7 +177,6 @@ class Centipede:
 class BugBlaster:
     def __init__(self, pos):
         self._pos = pos
-        self._score = 0
         self._alive = True
         self.lastkey = ""
         self._direction: Direction = Direction.EAST
@@ -219,7 +218,7 @@ class BugBlaster:
     
     @property
     def json(self):
-        return {"pos": self._pos, "score": self._score, "alive": self._alive}
+        return {"pos": self._pos, "alive": self._alive}
 
     def kill(self):
         self._alive = False
