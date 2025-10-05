@@ -4,7 +4,7 @@ import random
 from collections import deque
 from unicodedata import name
 
-from consts import KILL_CENTIPEDE_BODY_POINTS, TIMEOUT, Direction, HISTORY_LEN, Tiles
+from consts import KILL_CENTIPEDE_BODY_POINTS, TIMEOUT, Direction, HISTORY_LEN, Tiles, COOL_DOWN, KILL_MUSHROOM_POINTS
 from mapa import Map
 
 logger = logging.getLogger("Game")
@@ -13,13 +13,12 @@ logger.setLevel(logging.DEBUG)
 INITIAL_SCORE = 0
 GAME_SPEED = 10  # frames per second
 MAP_SIZE = (48, 24)
-FOOD_IN_MAP = 4
 
 class Centipede:
     def __init__(self, player_name: str, segments: list[tuple[int, int]]):
         self._name = player_name
         self._body = segments
-        print(f"Centipede {self._name} created with body {self._body}")
+        logger.info(f"Centipede {self._name} created with body {self._body}")
         self._direction: Direction = Direction.EAST
         self._history = deque(maxlen=HISTORY_LEN)
         self._alive = True
@@ -110,10 +109,8 @@ class Centipede:
             )
             # so we change direction and move down/up instead
             if self.head[1] == 0:
-                print("drop down")
                 self.move_dir = 1
             elif self.head[1] >= (mapa.size[1] - 1):
-                print("go up")
                 self.move_dir = -1
             new_pos = (self.head[0], self.head[1] + self.move_dir)
 
@@ -150,7 +147,7 @@ class Centipede:
             new_body = self._body[index + 1 :]
             self._body = self._body[: index]
 
-            print(f"Centipede {self.name}({old_body}) was hit at {blast}, new body {self._body}, new centipede {new_body}")
+            logger.debug(f"Centipede {self.name}({old_body}) was hit at {blast}, new body {self._body}, new centipede {new_body}")
 
             if len(self._body) < 1:
                 self.kill()
@@ -283,6 +280,7 @@ class Game:
         self._blasts = []
         self._last_key = ""
         self._score = 0
+        self._cooldown = 0  # frames until next shot
         self.map = Map(size=size)
 
     @property
@@ -341,14 +339,14 @@ class Game:
                 if mushroom.collision(blast):
                     to_be_removed.append(blast)
                     mushroom.take_damage()
-                    logger.info("Mushroom %s was hit by a blast", mushroom)
+                    logger.debug("Mushroom %s was hit by a blast", mushroom)
                     if not mushroom.exists():
-                        logger.info("Mushroom %s was destroyed", mushroom)
+                        logger.debug("Mushroom %s was destroyed", mushroom)
+                        self._score += KILL_MUSHROOM_POINTS
                     break
 
         for blast in to_be_removed:
-            self._score += 1
-            logger.info("Blast %s removed after hitting a mushroom", blast)
+            logger.debug("Blast %s removed after hitting a mushroom", blast)
             self._blasts.remove(blast)
 
 
@@ -372,13 +370,14 @@ class Game:
             )
 
             # Shoot
-            if lastkey == "A":
+            if lastkey == "A" and self._cooldown == 0:
                 self._blasts.append(self._bug_blaster.pos)
                 logger.info("BugBlaster <%s> fired a blast", self._bug_blaster)
                 self._last_key = ""
+                self._cooldown = COOL_DOWN  # frames until next shot
 
-            #TODO weapon cooldown
-
+            if self._cooldown > 0:
+                self._cooldown -= 1
 
         except AssertionError:
             logger.error("Invalid key <%s> pressed. Valid keys: w,a,s,d", lastkey)
@@ -408,7 +407,7 @@ class Game:
 
                         self._centipedes.append(new_centipede)
 
-                        self.score += (KILL_CENTIPEDE_BODY_POINTS - blast[1])  # higher points for hitting higher up the screen
+                        self._score += (KILL_CENTIPEDE_BODY_POINTS - blast[1])  # higher points for hitting higher up the screen
                         logger.info("Centipede <%s> was hit by a blast and split", centipede.name)
 
                         self._mushrooms.append(Mushroom(x=blast[0], y=blast[1]))

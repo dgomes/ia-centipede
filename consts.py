@@ -3,8 +3,12 @@ from enum import IntEnum
 HISTORY_LEN = 10
 
 KILL_CENTIPEDE_BODY_POINTS = 100
+KILL_MUSHROOM_POINTS = 1
 
 CENTIPEDE_LENGTH = 20
+
+COOL_DOWN = 10  # frames until next shot
+
 
 TIMEOUT = 3000
 

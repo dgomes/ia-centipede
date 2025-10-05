@@ -19,7 +19,6 @@ class GameInfoSprite(pygame.sprite.Sprite):
         self.line = line
         self.column = column
         self.image = pygame.Surface([WIDTH * SCALE, (self.line + 1) * SCALE])
-        print(self.image.get_size())
         self.image.set_colorkey("white")
         self.rect = self.image.get_rect()
         self.SCALE = SCALE

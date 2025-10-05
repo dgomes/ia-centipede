@@ -74,7 +74,7 @@ async def main(SCALE):
     bugblaster_sprites = pygame.sprite.Group()
     prev_mushrooms = None
 
-    step_info = Info(text="0")
+    game_info = Info(text="Score: 0000 Step: 0000")
 
     while True:
         should_quit()
@@ -86,7 +86,7 @@ async def main(SCALE):
             if "centipedes" in state and "mushrooms" in state:
                 centipedes_update = state["centipedes"]
                 mushrooms_update = state["mushrooms"]
-                step_info.text = f"Step: {state['step']}"
+                game_info.text = f"Score: {state['score']} Step: {state['step']}"
             elif "highscores" in state:
                 all_sprites.add(
                     ScoreBoardSprite(
@@ -146,7 +146,7 @@ async def main(SCALE):
                 for centipede in centipedes_update
             }
 
-            all_sprites.add(GameInfoSprite(step_info, WIDTH-len(step_info.text), 0, WIDTH, SCALE))
+            all_sprites.add(GameInfoSprite(game_info, WIDTH-len(game_info.text)/2, 0, WIDTH, SCALE))
 
             centipede_sprites.add(
                 [CentipedeSprite(centipede, WIDTH, HEIGHT, SCALE) for centipede in centipedes.values()]
