@@ -7,9 +7,9 @@ import argparse
 import asyncio
 import websockets
 
-from common import Directions, Food, Snake, ScoreBoard, get_direction
+from common import Directions, Food, Snake, get_direction
 
-from sprites import SnakeSprite, FoodSprite, ScoreBoardSprite
+from sprites import SnakeSprite, FoodSprite
 
 
 async def main_loop(q):

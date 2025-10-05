@@ -2,7 +2,7 @@ import pygame
 from collections import deque
 
 from .spritesheet import SpriteSheet, CELL_SIZE
-from .common import Directions, Centipede, Food, Stone, Blast, ScoreBoard, get_direction
+from .common import Directions, Centipede, Food, Stone, Blast, get_direction
 
 from dataclasses import dataclass
 
