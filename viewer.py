@@ -3,19 +3,11 @@ import asyncio
 import json
 import logging
 import os
-import sys
 import pprint
 
 from consts import Tiles
 import pygame
 import websockets
-
-logging.basicConfig(level=logging.DEBUG)
-logger_websockets = logging.getLogger("websockets")
-logger_websockets.setLevel(logging.WARN)
-
-logger = logging.getLogger("Viewer")
-logger.setLevel(logging.DEBUG)
 
 from viewer.common import (
     Blast,
@@ -32,13 +24,19 @@ from viewer.sprites import (
     BlastSprite,
     BugBlasterSprite,
     Info,
-    GameStateSprite,
     GameInfoSprite,
     CentipedeSprite,
     FoodSprite,
     StoneSprite,
     ScoreBoardSprite,
 )
+
+logging.basicConfig(level=logging.DEBUG)
+logger_websockets = logging.getLogger("websockets")
+logger_websockets.setLevel(logging.WARN)
+
+logger = logging.getLogger("Viewer")
+logger.setLevel(logging.DEBUG)
 
 
 async def main_loop(q, SCALE):
@@ -83,6 +81,7 @@ async def main(SCALE):
     stone_sprites = pygame.sprite.Group()
     bugblaster_sprites = pygame.sprite.Group()
     prev_mushrooms = None
+    centipedes = {}
 
     game_info = Info(text="Score: 0000 Step: 0000")
 

@@ -9,7 +9,6 @@ from consts import (
     TIMEOUT,
     Direction,
     HISTORY_LEN,
-    Tiles,
     COOL_DOWN,
     KILL_MUSHROOM_POINTS,
 )
@@ -219,7 +218,7 @@ class BugBlaster:
                 new_pos = (self._pos[0] + 1, self._pos[1])
         self._direction = direction
 
-        if not new_pos in [mushroom.pos for mushroom in mushrooms]:
+        if new_pos not in [mushroom.pos for mushroom in mushrooms]:
             self._pos = new_pos
 
     def exists(self):
@@ -248,9 +247,6 @@ class Mushroom:
 
     def take_damage(self):
         self._health -= 1
-
-    def collision(self, pos):
-        return pos == self._pos
 
     def exists(self):
         return self._health > 0

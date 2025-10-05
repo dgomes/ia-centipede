@@ -1,6 +1,5 @@
 import logging
 import random
-import math
 
 from consts import Direction, Tiles, CENTIPEDE_LENGTH
 

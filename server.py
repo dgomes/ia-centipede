@@ -8,7 +8,7 @@ import logging
 import os.path
 import random
 from collections import namedtuple
-from typing import Any, Dict, Set
+from typing import Set
 
 import requests
 import websockets
@@ -176,7 +176,7 @@ class GameServer:
                             state["ts"] = datetime.now().isoformat()
                             try:
                                 await player.ws.send(json.dumps(state))
-                            except Exception as e:
+                            except Exception:
                                 logger.error(
                                     "Player <%s> disconnected, could not send state",
                                     player.name,
