@@ -11,6 +11,7 @@ from consts import (
     HISTORY_LEN,
     COOL_DOWN,
     KILL_MUSHROOM_POINTS,
+    MUSHROOM_SPAWN_RATE,
 )
 from mapa import Map
 
@@ -19,7 +20,7 @@ logger.setLevel(logging.DEBUG)
 
 INITIAL_SCORE = 0
 GAME_SPEED = 10  # frames per second
-MAP_SIZE = (48, 24)
+MAP_SIZE = (40, 24)
 
 
 class Centipede:
@@ -464,6 +465,13 @@ class Game:
         self._mushrooms = [
             mushroom for mushroom in self._mushrooms if mushroom.exists()
         ]
+
+        # spawn new mushrooms over time
+        if self._step % MUSHROOM_SPAWN_RATE == 0:
+            logger.info("Spawning new mushroom")
+            x, y = self.map.spawn_mushroom()
+            self._mushrooms.append(Mushroom(x=x, y=y))
+
 
         self._state = {
             "centipedes": [

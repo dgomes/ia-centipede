@@ -9,6 +9,7 @@ CENTIPEDE_LENGTH = 20
 
 COOL_DOWN = 10  # frames until next shot
 
+MUSHROOM_SPAWN_RATE = 20  # frames between spawning new mushrooms
 
 TIMEOUT = 3000
 

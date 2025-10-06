@@ -6,6 +6,7 @@ from consts import Direction, Tiles, CENTIPEDE_LENGTH
 logger = logging.getLogger("Map")
 logger.setLevel(logging.DEBUG)
 
+BOTTOM_ROWS = 5
 
 class Map:
     def __init__(
@@ -19,6 +20,7 @@ class Map:
         self._size = size
         self._stones = []
         self._mushrooms = []
+        self._queue_mushrooms = []
         self._snake_nests = []
 
         if not mapa:
@@ -44,9 +46,7 @@ class Map:
                     self._stones.append((xx, y))
             """
             # add mushrooms
-            for _ in range(
-                int(self.hor_tiles * self.ver_tiles * mushroom_percentage)
-            ):  # 10% of map
+            while len(self._mushrooms) < (self.hor_tiles * self.ver_tiles * mushroom_percentage):  # 10% of map
                 x, y = random.randint(0, self.hor_tiles - 1), random.randint(
                     0, self.ver_tiles - 1
                 )
@@ -54,10 +54,13 @@ class Map:
                     self.map[x][y] = Tiles.FOOD
                     self._mushrooms.append((x, y))
 
+            # queue some more mushrooms to be spawned later
+            self.spawn_mushroom()
+
             # clean up bottom rows for bug blaster
             for x in range(self.hor_tiles):
-                for y in range(self.ver_tiles - 5, self.ver_tiles):
-                    if self.map[x][y] == Tiles.FOOD:
+                for y in range(self.ver_tiles - BOTTOM_ROWS, self.ver_tiles):
+                    if self.map[x][y] == Tiles.FOOD and (x,y) in self._mushrooms:
                         self._mushrooms.remove((x, y))
                     if self.map[x][y] == Tiles.STONE:
                         self._stones.remove((x, y))
@@ -70,6 +73,18 @@ class Map:
     @property
     def mushrooms(self):
         return [(x, y, self.map[x][y].name) for x, y in self._mushrooms]
+
+    def spawn_mushroom(self):
+        if not self._queue_mushrooms or len(self._queue_mushrooms) == 0:
+            logger.warning("No more mushrooms to spawn")
+            while len(self._queue_mushrooms) < (self.hor_tiles * self.ver_tiles * 0.1):  # generate packs corresponding to 10% of map
+                x, y = random.randint(0, self.hor_tiles - 1), random.randint(
+                    0, self.ver_tiles - BOTTOM_ROWS
+                )
+                if self.map[x][y] == Tiles.PASSAGE:
+                    self.map[x][y] = Tiles.FOOD
+                    self._queue_mushrooms.append((x, y))
+        return self._queue_mushrooms.pop(0)
 
     @property
     def hor_tiles(self):
