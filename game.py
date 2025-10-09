@@ -416,17 +416,17 @@ class Game:
 
                         self._centipedes.append(new_centipede)
 
-                        self._score += (
-                            KILL_CENTIPEDE_BODY_POINTS - blast[1]
-                        )  # higher points for hitting higher up the screen
-                        logger.info(
-                            "Centipede <%s> was hit by a blast and split",
-                            centipede.name,
-                        )
+                    self._score += (
+                        KILL_CENTIPEDE_BODY_POINTS - blast[1]
+                    )  # higher points for hitting higher up the screen
+                    logger.info(
+                        "Centipede <%s> was hit by a blast and split",
+                        centipede.name,
+                    )
 
-                        self._mushrooms.append(Mushroom(x=blast[0], y=blast[1]))
+                    self._mushrooms.append(Mushroom(x=blast[0], y=blast[1]))
 
-                        to_be_removed.append(blast)
+                    to_be_removed.append(blast)
             self._blasts = [b for b in self._blasts if b not in to_be_removed]
 
             # check collisions with bug blaster
