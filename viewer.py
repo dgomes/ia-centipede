@@ -6,8 +6,14 @@ import os
 import pprint
 
 from consts import Tiles
+from viewer.navigator import FrameNavigator
 import pygame
 import websockets
+
+PANEL_WIDTH = 200
+REPLAY_BUFFER_SIZE = 200
+
+frame_nav = FrameNavigator(buffer_size=REPLAY_BUFFER_SIZE)
 
 from viewer.common import (
     Blast,
@@ -44,7 +50,10 @@ async def main_loop(q, SCALE):
         await main(SCALE)
 
 
-def should_quit():
+def should_quit(navigate:bool = False):
+
+    global frame_nav
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -54,8 +63,49 @@ def should_quit():
                 pygame.quit()
                 raise SystemExit
 
+            if not navigate:
+                continue
+
+            if event.key == pygame.K_LEFT:  # Go back
+                if frame_nav.go_back():
+                    logger.info("Stepped backward")
+
+            elif event.key == pygame.K_RIGHT:  # Go forward
+                if frame_nav.go_forward():
+                    logger.info("Stepped forward")
+
+            elif event.key == pygame.K_SPACE:  # Toggle pause/live
+                if frame_nav.is_live():
+                    frame_nav.pause()
+                    logger.info("Paused")
+                else:
+                    frame_nav.go_live()
+                    logger.info("Resumed live view")
+
+def draw_simple_panel(display,SCALE, WIDTH, HEIGHT):
+    x = int(SCALE * WIDTH) + 10
+
+    panel_font = pygame.font.Font(None, 24)
+    pygame.draw.rect(display, (40, 40, 40), (int(SCALE * WIDTH), 0, 180, int(SCALE * HEIGHT)))
+
+    controls = [
+        "Controls:",
+        "<- go back",
+        "-> go forward",
+        "SPACE Pause/Live",
+    ]
+
+    y = 20
+    for line in controls:
+        if line:
+            text = panel_font.render(line, True, (255, 255, 255))  # White text
+            display.blit(text, (x, y))
+        y += 30
 
 async def main(SCALE):
+
+    global frame_nav
+
     logging.info("Waiting for map information from server")
     while True:
         try:
@@ -73,7 +123,8 @@ async def main(SCALE):
     WIDTH, HEIGHT = newgame_json["size"]
     MAP = newgame_json["map"]
 
-    display = pygame.display.set_mode((SCALE * WIDTH, SCALE * HEIGHT))
+    display = pygame.display.set_mode((SCALE * WIDTH + PANEL_WIDTH, SCALE * HEIGHT))
+    draw_simple_panel(display,SCALE,WIDTH, HEIGHT)
 
     all_sprites = pygame.sprite.Group()
     centipede_sprites = pygame.sprite.Group()
@@ -86,16 +137,32 @@ async def main(SCALE):
     game_info = Info(text="Score: 0000 Step: 0000")
 
     while True:
-        should_quit()
+        should_quit(True)
+
+        new_state = None
+        try:
+            new_state = json.loads(q.get_nowait())
+            frame_nav.add_frame(new_state)
+            pprint.pprint(new_state)
+        except asyncio.queues.QueueEmpty:
+            if frame_nav.is_live():  # Only sleep if we're in live mode
+                await asyncio.sleep(0.1/GAME_SPEED)
+                continue
+
+        state = frame_nav.get_current_frame() or new_state
+        if state is None:
+            await asyncio.sleep(0.1/GAME_SPEED)
+            continue
 
         try:
-            state = json.loads(q.get_nowait())
-            pprint.pprint(state)
+
 
             if "centipedes" in state and "mushrooms" in state:
                 centipedes_update = state["centipedes"]
                 mushrooms_update = state["mushrooms"]
-                game_info.text = f"Score: {state['score']} Step: {state['step']}"
+                navigator_status = "LIVE" if frame_nav.is_live() else "Paused"
+                game_info.text = f"Score: {state['score']} Step: {state['step']} |{navigator_status}"
+
             elif "highscores" in state:
                 all_sprites.add(
                     ScoreBoardSprite(
@@ -209,7 +276,9 @@ async def main(SCALE):
         new_game = False
 
         # Render Window
-        display.fill("white")
+        # display.fill("white")
+        # fill the game side of the display
+        display.fill("white", pygame.Rect(0, 0, int(SCALE * WIDTH), int(SCALE * HEIGHT)))
 
         try:
             all_sprites.update()
