@@ -12,12 +12,11 @@ class FrameNavigator:
 
     def add_frame(self, game_state) -> None:
         """Add new frame to buffer"""
+        start = len(self.buffer)
         self.buffer.append(game_state)
-        if self.current_index == -1:
-            return
-
-        # keep a valid index
-        self.current_index = max(0,self.current_index-1)
+        end = len(self.buffer)
+        if self.current_index != -1 and (start == end):
+            self.current_index = max(0,self.current_index-1)
 
     def go_back(self, times:int = 1) -> bool:
         """Go to previous frame"""
@@ -32,8 +31,6 @@ class FrameNavigator:
 
         self.paused = True
         return True
-
-
 
     def go_forward(self, times:int = 1) -> bool:
         """Go to next frame"""

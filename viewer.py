@@ -145,13 +145,13 @@ async def main(SCALE):
             frame_nav.add_frame(new_state)
             pprint.pprint(new_state)
         except asyncio.queues.QueueEmpty:
+            await asyncio.sleep(0.1/GAME_SPEED)
+
             if frame_nav.is_live():  # Only sleep if we're in live mode
-                await asyncio.sleep(0.1/GAME_SPEED)
                 continue
 
-        state = frame_nav.get_current_frame() or new_state
+        state = frame_nav.get_current_frame()
         if state is None:
-            await asyncio.sleep(0.1/GAME_SPEED)
             continue
 
         try:
