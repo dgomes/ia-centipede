@@ -24,11 +24,11 @@ MAP_SIZE = (40, 24)
 
 
 class Centipede:
-    def __init__(self, player_name: str, segments: list[tuple[int, int]]):
+    def __init__(self, player_name: str, segments: list[tuple[int, int]], dir: Direction = Direction.EAST):
         self._name = player_name
         self._body = segments
         logger.info(f"Centipede {self._name} created with body {self._body}")
-        self._direction: Direction = Direction.EAST
+        self._direction = dir
         self._history = deque(maxlen=HISTORY_LEN)
         self._alive = True
         self.lastkey = ""
@@ -411,7 +411,9 @@ class Game:
                 if centipede.collision(blast):
                     if (new_body := centipede.take_hit(blast)) != []:
                         new_centipede = Centipede(
-                            centipede.name + "_" + str(random.randint(1, 100)), new_body
+                            centipede.name + "_" + str(random.randint(1, 100)),
+                            new_body,
+                            centipede.direction
                         )  # TODO proper naming for child centipede
 
                         self._centipedes.append(new_centipede)
