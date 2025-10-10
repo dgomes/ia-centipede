@@ -6,14 +6,13 @@ import os
 import pprint
 
 from consts import Tiles
-from viewer.navigator import FrameNavigator
 import pygame
 import websockets
 
-PANEL_WIDTH = 200
-REPLAY_BUFFER_SIZE = 200
+from viewer.navigator import FrameNavigator, NAVIGATOR_PANEL_WIDTH, draw_navigator_panel
 
-frame_nav = FrameNavigator(buffer_size=REPLAY_BUFFER_SIZE)
+replay_buffer_size:int
+frame_nav:FrameNavigator
 
 from viewer.common import (
     Blast,
@@ -74,33 +73,11 @@ def should_quit(navigate:bool = False):
                 if frame_nav.go_forward():
                     logger.info("Stepped forward")
 
+            elif event.key == pygame.K_RETURN:
+                frame_nav.go_live()
+
             elif event.key == pygame.K_SPACE:  # Toggle pause/live
-                if frame_nav.is_live():
-                    frame_nav.pause()
-                    logger.info("Paused")
-                else:
-                    frame_nav.go_live()
-                    logger.info("Resumed live view")
-
-def draw_simple_panel(display,SCALE, WIDTH, HEIGHT):
-    x = int(SCALE * WIDTH) + 10
-
-    panel_font = pygame.font.Font(None, 24)
-    pygame.draw.rect(display, (40, 40, 40), (int(SCALE * WIDTH), 0, 180, int(SCALE * HEIGHT)))
-
-    controls = [
-        "Controls:",
-        "<- go back",
-        "-> go forward",
-        "SPACE Pause/Live",
-    ]
-
-    y = 20
-    for line in controls:
-        if line:
-            text = panel_font.render(line, True, (255, 255, 255))  # White text
-            display.blit(text, (x, y))
-        y += 30
+                frame_nav.toggle_pause()
 
 async def main(SCALE):
 
@@ -123,8 +100,8 @@ async def main(SCALE):
     WIDTH, HEIGHT = newgame_json["size"]
     MAP = newgame_json["map"]
 
-    display = pygame.display.set_mode((SCALE * WIDTH + PANEL_WIDTH, SCALE * HEIGHT))
-    draw_simple_panel(display,SCALE,WIDTH, HEIGHT)
+    display = pygame.display.set_mode((SCALE * WIDTH + NAVIGATOR_PANEL_WIDTH, SCALE * HEIGHT))
+    draw_navigator_panel(display,SCALE,WIDTH, HEIGHT)
 
     all_sprites = pygame.sprite.Group()
     centipede_sprites = pygame.sprite.Group()
@@ -160,8 +137,15 @@ async def main(SCALE):
             if "centipedes" in state and "mushrooms" in state:
                 centipedes_update = state["centipedes"]
                 mushrooms_update = state["mushrooms"]
-                navigator_status = "LIVE" if frame_nav.is_live() else "Paused"
-                game_info.text = f"Score: {state['score']} Step: {state['step']} |{navigator_status}"
+                game_info.text = f"Score: {state['score']} Step: {state['step']} |{frame_nav.get_info()}"
+
+                if not "highscores" in state:
+                    # TODO: remove ScoreBoardSprite
+                    # remove scoreboardsprite to avoid bugs when going back to a previous game
+                    if not "highscores" in state:
+                        for sprite in [s for s in all_sprites if isinstance(s, ScoreBoardSprite)]:
+                            all_sprites.remove(sprite)
+                            #break # dont break because when using replay mode it can add more sprites :)
 
             elif "highscores" in state:
                 all_sprites.add(
@@ -308,6 +292,7 @@ async def messages_handler(ws_path, queue):
 
 
 if __name__ == "__main__":
+
     SERVER = os.environ.get("SERVER", "localhost")
     PORT = os.environ.get("PORT", "8000")
 
@@ -317,7 +302,12 @@ if __name__ == "__main__":
         "--scale", help="reduce size of window by x times", type=int, default=1
     )
     parser.add_argument("--port", help="TCP port", type=int, default=PORT)
+    parser.add_argument("--buffer", help="Navigator buffer size", type=int, default=200 )
     args = parser.parse_args()
+
+    replay_buffer_size = args.buffer
+    frame_nav = FrameNavigator(replay_buffer_size)
+
     SCALE = 32 * (1 / args.scale)
 
     LOOP = asyncio.get_event_loop()
