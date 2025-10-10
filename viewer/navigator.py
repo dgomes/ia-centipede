@@ -16,10 +16,10 @@ def draw_navigator_panel(display,SCALE, WIDTH, HEIGHT):
 
     controls = [
         "Controls:",
-        "<- go back",
-        "-> go forward",
-        "SPACE Pause/Replay",
-        "Enter  Go live",
+        "LARROW: go back",
+        "RARROW: go forward",
+        "SPACE: Pause/Replay",
+        "Enter:  Go live",
     ]
 
     y = 20
@@ -83,24 +83,24 @@ class FrameNavigator:
         """Get current frame from pointer"""
         if not self.buffer:
             return None
-        
+
         # live mode
         if self.current_index == -1:
             return self.buffer[-1]
-        
+
         # paused/replay mode
         if 0 <= self.current_index < len(self.buffer):
             current_frame = self.buffer[self.current_index]
-            
+
             # advance to next frame if on replay mode
             if not (self.isPaused or self.is_live()):
                 self.current_index+=1
-                
+
                 # go live if on the last element
                 if self.current_index >= len(self.buffer):
                     self.current_index = -1
                     self.isPaused = False
-                
+
             return current_frame
 
         return None
