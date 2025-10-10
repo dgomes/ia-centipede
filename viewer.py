@@ -57,27 +57,15 @@ def should_quit(navigate:bool = False):
         if event.type == pygame.QUIT:
             pygame.quit()
             raise SystemExit
+
+        if navigate:
+            frame_nav.handle_key_event(event)
+
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 pygame.quit()
                 raise SystemExit
 
-            if not navigate:
-                continue
-
-            if event.key == pygame.K_LEFT:  # Go back
-                if frame_nav.go_back():
-                    logger.info("Stepped backward")
-
-            elif event.key == pygame.K_RIGHT:  # Go forward
-                if frame_nav.go_forward():
-                    logger.info("Stepped forward")
-
-            elif event.key == pygame.K_RETURN:
-                frame_nav.go_live()
-
-            elif event.key == pygame.K_SPACE:  # Toggle pause/live
-                frame_nav.toggle_pause()
 
 async def main(SCALE):
 
@@ -313,6 +301,7 @@ if __name__ == "__main__":
     LOOP = asyncio.get_event_loop()
     pygame.init()
     pygame.font.init()
+    pygame.key.set_repeat(300,50)
     q: asyncio.Queue = asyncio.Queue()
 
     ws_path = f"ws://{args.server}:{args.port}/viewer"

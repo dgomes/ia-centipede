@@ -1,8 +1,12 @@
 import pygame
+import logging
 from collections import deque
 
 LIVE:int = -1
 NAVIGATOR_PANEL_WIDTH = 200
+
+logger = logging.getLogger("Navigator")
+logger.setLevel(logging.DEBUG)
 
 def draw_navigator_panel(display,SCALE, WIDTH, HEIGHT):
     x = int(SCALE * WIDTH) + 10
@@ -79,12 +83,25 @@ class FrameNavigator:
         """Get current frame from pointer"""
         if not self.buffer:
             return None
-        if -1 <= self.current_index < len(self.buffer):
-            # return frame
-            i = self.current_index
+        
+        # live mode
+        if self.current_index == -1:
+            return self.buffer[-1]
+        
+        # paused/replay mode
+        if 0 <= self.current_index < len(self.buffer):
+            current_frame = self.buffer[self.current_index]
+            
+            # advance to next frame if on replay mode
             if not (self.isPaused or self.is_live()):
                 self.current_index+=1
-            return self.buffer[i]
+                
+                # go live if on the last element
+                if self.current_index >= len(self.buffer):
+                    self.current_index = -1
+                    self.isPaused = False
+                
+            return current_frame
 
         return None
 
@@ -122,3 +139,19 @@ class FrameNavigator:
         if self.current_index == -1:
             return "Live"
         return "Replay"
+
+    def handle_key_event(self,event) -> None:
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_LEFT:  # Go back
+                if self.go_back():
+                    logger.info("Stepped backward")
+
+            elif event.key == pygame.K_RIGHT:  # Go forward
+                if self.go_forward():
+                    logger.info("Stepped forward")
+
+            elif event.key == pygame.K_RETURN:
+                self.go_live()
+
+            elif event.key == pygame.K_SPACE:  # Toggle pause/live
+                self.toggle_pause()
