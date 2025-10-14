@@ -144,6 +144,12 @@ class Centipede:
     def collision(self, pos):
         return pos in self._body
 
+    def single_intersection(self, pos_pair):
+        if len(self._history) > 1 and len(self._body) == 1:
+            if pos_pair[1] == self._history[-2] and pos_pair[0] == self._history[-1]:
+                return True
+        return False
+
     def reverse_direction(self):
         self._body.reverse()
         if self.direction == Direction.EAST:
@@ -191,6 +197,7 @@ class Centipede:
 class BugBlaster:
     def __init__(self, pos):
         self._pos = pos
+        self._last_pos = pos
         self._alive = True
         self.lastkey = ""
         self._direction: Direction = Direction.EAST
@@ -220,6 +227,7 @@ class BugBlaster:
         self._direction = direction
 
         if new_pos not in [mushroom.pos for mushroom in mushrooms]:
+            self._last_pos = self._pos
             self._pos = new_pos
 
     def exists(self):
@@ -432,8 +440,10 @@ class Game:
             self._blasts = [b for b in self._blasts if b not in to_be_removed]
 
             # check collisions with bug blaster
-            if self._bug_blaster.exists() and centipede.collision(
-                self._bug_blaster._pos
+            if self._bug_blaster.exists() and (
+                centipede.collision(self._bug_blaster._pos) or
+                centipede.single_intersection(
+                    (self._bug_blaster._last_pos, self._bug_blaster._pos))
             ):
                 self._bug_blaster.kill()
                 logger.info("BugBlaster was killed by centipede <%s>", centipede.name)
