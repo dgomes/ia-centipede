@@ -258,7 +258,7 @@ class Mushroom:
 
     @property
     def health(self):
-        return self.health
+        return self._health
 
     def collision(self, pos):
         return pos == self._pos
