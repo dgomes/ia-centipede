@@ -3,6 +3,7 @@ import logging
 import random
 from collections import deque
 from unicodedata import name
+from consts import Tiles
 
 from consts import (
     KILL_CENTIPEDE_BODY_POINTS,
@@ -220,7 +221,9 @@ class BugBlaster:
         self._direction = direction
 
         if new_pos not in [mushroom.pos for mushroom in mushrooms]:
+            mapa.map[self._pos[0]][self._pos[1]] = Tiles.PASSAGE 
             self._pos = new_pos
+            mapa.map[new_pos[0]][new_pos[1]] = Tiles.SUPER
 
     def exists(self):
         return self._alive
@@ -330,6 +333,10 @@ class Game:
         self._running = True
         self._centipedes = [Centipede("mother", self.map.spawn_centipede())]
         self._bug_blaster = BugBlaster(self.map.spawn_bug_blaster())
+
+        # Atualiza estado dessa celula do mapa como um Bug Blaster
+        self.map.map[self._bug_blaster.pos[0]][self._bug_blaster.pos[1]] = Tiles.SUPER
+        
         self._mushrooms = [Mushroom(x, y) for x, y, _ in self.map.mushrooms]
         self._blasts = []
 
