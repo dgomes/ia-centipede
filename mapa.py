@@ -81,7 +81,7 @@ class Map:
                 x, y = random.randint(0, self.hor_tiles - 1), random.randint(
                     0, self.ver_tiles - BOTTOM_ROWS
                 )
-                if self.map[x][y] == Tiles.PASSAGE and (x,y) != bug_blaster_pos if bug_blaster_pos else True:
+                if self.map[x][y] == Tiles.PASSAGE and (not bug_blaster_pos or (x,y) != bug_blaster_pos):
                     self.map[x][y] = Tiles.FOOD
                     self._queue_mushrooms.append((x, y))
         return self._queue_mushrooms.pop(0)

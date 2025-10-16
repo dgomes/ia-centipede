@@ -330,7 +330,7 @@ class Game:
         logger.debug("Reset world")
         self._running = True
         self._centipedes = [Centipede("mother", self.map.spawn_centipede())]
-        self._bug_blaster = BugBlaster(self.map.spawn_bug_blaster())        
+        self._bug_blaster = BugBlaster(self.map.spawn_bug_blaster())
         self._mushrooms = [Mushroom(x, y) for x, y, _ in self.map.mushrooms]
         self._blasts = []
 
