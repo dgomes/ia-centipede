@@ -221,9 +221,7 @@ class BugBlaster:
         self._direction = direction
 
         if new_pos not in [mushroom.pos for mushroom in mushrooms]:
-            mapa.map[self._pos[0]][self._pos[1]] = Tiles.PASSAGE 
             self._pos = new_pos
-            mapa.map[new_pos[0]][new_pos[1]] = Tiles.SUPER
 
     def exists(self):
         return self._alive
@@ -478,7 +476,7 @@ class Game:
         # spawn new mushrooms over time
         if self._step % MUSHROOM_SPAWN_RATE == 0:
             logger.info("Spawning new mushroom")
-            x, y = self.map.spawn_mushroom()
+            x, y = self.map.spawn_mushroom(self._bug_blaster.pos)
             self._mushrooms.append(Mushroom(x=x, y=y))
 
 
