@@ -3,7 +3,7 @@ import logging
 import random
 from collections import deque
 from unicodedata import name
-from consts import Tiles
+
 
 from consts import (
     KILL_CENTIPEDE_BODY_POINTS,
@@ -330,11 +330,7 @@ class Game:
         logger.debug("Reset world")
         self._running = True
         self._centipedes = [Centipede("mother", self.map.spawn_centipede())]
-        self._bug_blaster = BugBlaster(self.map.spawn_bug_blaster())
-
-        # Atualiza estado dessa celula do mapa como um Bug Blaster
-        self.map.map[self._bug_blaster.pos[0]][self._bug_blaster.pos[1]] = Tiles.SUPER
-        
+        self._bug_blaster = BugBlaster(self.map.spawn_bug_blaster())        
         self._mushrooms = [Mushroom(x, y) for x, y, _ in self.map.mushrooms]
         self._blasts = []
 
