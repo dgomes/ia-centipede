@@ -125,16 +125,31 @@ class Centipede:
                 self.move_dir = 1
             elif self.head[1] >= (mapa.size[1] - 1):
                 self.move_dir = -1
-            new_pos = (self.head[0], self.head[1] + self.move_dir)
 
-            # check mushroom collisions again and reverse over itself
-            if new_pos in [mushroom.pos for mushroom in mushrooms]:
+            # try to move down
+            down_pos = (self.head[0], self.head[1] + self.move_dir)
+
+            if down_pos in [m.pos for m in mushrooms]:
+                # can't move down yet
+                # reverse horizontally but remember we want to go down
+                self.waiting_to_move_down = True
                 new_pos = self.head
+            else:
+                # can move down normally
+                self.waiting_to_move_down = False
+                new_pos = down_pos
 
             self._direction = (
                 Direction.EAST if self.direction == Direction.WEST else Direction.WEST
             )
             self.reverse_next_move = False
+
+        # in each step, check if we were waiting to move down and can now do so
+        if getattr(self, "waiting_to_move_down", False):
+            down_pos = (self.head[0], self.head[1] + self.move_dir)
+            if down_pos not in [m.pos for m in mushrooms]:
+                new_pos = down_pos
+                self.waiting_to_move_down = False
 
         self._body.append(new_pos)
         self._body.pop(0)
