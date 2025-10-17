@@ -458,6 +458,7 @@ class Game:
             if centipede.alive:
                 centipede.move(self.map, self._mushrooms, self.centipedes)
 
+        self.collision()
         self.update_bug_blaster()
         self.update_blasts()
 
