@@ -36,7 +36,7 @@ class Centipede:
         self.range = 3
         self.reverse_next_move = False
         self.move_dir = 1  # 1 means moving down, -1 means moving up
-        self.waiting_to_move_down = False
+        self.waiting_to_move_vertically = False
 
     def grow(self, amount=1):
         self.to_grow += amount
@@ -113,9 +113,9 @@ class Centipede:
         if new_pos in [mushroom.pos for mushroom in mushrooms]:
             new_pos = self.head
 
-        # down position
-        down_x = self.head[0]
-        down_y = self.head[1] + self.move_dir
+        # vertical position
+        vert_x = self.head[0]
+        vert_y = self.head[1] + self.move_dir
 
         # wall hit
         if new_pos == self.head or self.reverse_next_move:
@@ -132,16 +132,16 @@ class Centipede:
             elif self.head[1] >= (mapa.size[1] - 1):
                 self.move_dir = -1
 
-            # check if it's blocked bellow
-            if 0 <= down_y < mapa.size[1] and (down_x, down_y) not in [
+            # check if it's blocked vertically
+            if 0 <= vert_y < mapa.size[1] and (vert_x, vert_y) not in [
                 m.pos for m in mushrooms
             ]:
-                # it goes down on this tick
-                new_pos = (down_x, down_y)
+                # it moves vertically on this tick
+                new_pos = (vert_x, vert_y)
             else:
-                # can't go down right now, set up a debt
+                # can't move vertcally right now, set up a debt
                 new_pos = self.head
-                self.waiting_to_move_down = True
+                self.waiting_to_move_vertically = True
 
             self._direction = (
                 Direction.EAST if self.direction == Direction.WEST else Direction.WEST
@@ -149,13 +149,13 @@ class Centipede:
             self.reverse_next_move = False
 
         # debt resolution
-        elif self.waiting_to_move_down:
-            # check if it's blocked bellow
-            if 0 <= down_y < mapa.size[1] and (down_x, down_y) not in [
+        elif self.waiting_to_move_vertically:
+            # check if it's blocked vertically
+            if 0 <= vert_y < mapa.size[1] and (vert_x, vert_y) not in [
                 m.pos for m in mushrooms
             ]:
-                new_pos = (down_x, down_y)
-                self.waiting_to_move_down = False
+                new_pos = (vert_x, vert_y)
+                self.waiting_to_move_vertically = False
 
         self._body.append(new_pos)
         self._body.pop(0)
