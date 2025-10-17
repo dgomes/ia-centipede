@@ -36,6 +36,7 @@ class Centipede:
         self.range = 3
         self.reverse_next_move = False
         self.move_dir = 1  # 1 means moving down, -1 means moving up
+        self.waiting_to_move_down = False
 
     def grow(self, amount=1):
         self.to_grow += amount
@@ -145,7 +146,7 @@ class Centipede:
             self.reverse_next_move = False
 
         # in each step, check if we were waiting to move down and can now do so
-        if getattr(self, "waiting_to_move_down", False):
+        if self.waiting_to_move_down:
             down_pos = (self.head[0], self.head[1] + self.move_dir)
             if down_pos not in [m.pos for m in mushrooms]:
                 new_pos = down_pos
