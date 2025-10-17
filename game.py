@@ -349,53 +349,6 @@ class Game:
         self._mushrooms = [Mushroom(x, y) for x, y, _ in self.map.mushrooms]
         self._blasts = []
 
-        # DEBUG MODE
-        # Uncomment one of the next lines to enable the bug test
-        # self._setup_trapped_centipede_test()
-        # self._setup_upward_trap_test()
-
-    def _setup_trapped_centipede_test(self):
-        """DEBUG: Scenario where centipede gets trapped horizontally by mushrooms."""
-        logger.info("DEBUG: Setting up trapped centipede test scenario")
-        self._mushrooms = []
-        self._centipedes = []
-
-        center_x, center_y = self.map.size[0] // 2, self.map.size[1] // 2
-        body = [(center_x - i, center_y) for i in range(4)]
-        c = Centipede("trapped", body, Direction.EAST)
-        self._centipedes.append(c)
-
-        trap_mushrooms = [
-            (center_x + 6, center_y),  # right block
-            (center_x + 5, center_y + 1),  # right below
-            (center_x - 9, center_y),  # left block
-            (center_x - 8, center_y + 1),  # left below
-        ]
-        self._mushrooms += [Mushroom(x, y) for x, y in trap_mushrooms]
-        logger.info("Centipede should bounce but eventually slide down.")
-
-    def _setup_upward_trap_test(self):
-        """DEBUG: Centipede moving upward with mushroom above (mirror of trapped test)."""
-        logger.info("DEBUG: Setting up upward-trap test scenario")
-        self._mushrooms = []
-        self._centipedes = []
-
-        cx, cy = self.map.size[0] // 2, self.map.size[1] // 2
-        c = Centipede("upward_trap", [(cx - i, cy) for i in range(4)], Direction.EAST)
-        c.move_dir = -1  # moving upward
-        self._centipedes.append(c)
-
-        trap_mushrooms = [
-            (cx + 6, cy),
-            (cx + 5, cy - 1),
-            (cx - 9, cy),
-            (cx - 8, cy - 1),
-        ]
-        self._mushrooms += [Mushroom(x, y) for x, y in trap_mushrooms]
-        logger.info(
-            "Centipede moving upward should handle top-blocked case properly."
-        )
-
     def stop(self):
         logger.info("GAME OVER")
         self._running = False
