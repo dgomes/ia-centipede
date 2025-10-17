@@ -3,6 +3,7 @@ import logging
 import random
 from collections import deque
 from unicodedata import name
+from consts import Tiles
 
 
 from consts import (
@@ -472,8 +473,11 @@ class Game:
         # spawn new mushrooms over time
         if self._step % MUSHROOM_SPAWN_RATE == 0:
             logger.info("Spawning new mushroom")
-            x, y = self.map.spawn_mushroom(self._bug_blaster.pos)
-            self._mushrooms.append(Mushroom(x=x, y=y))
+            x, y = self.map.spawn_mushroom()
+            if (x, y) != self._bug_blaster.pos:
+                self._mushrooms.append(Mushroom(x=x, y=y))
+            else:
+                self.map.map[x][y] = Tiles.PASSAGE
 
 
         self._state = {

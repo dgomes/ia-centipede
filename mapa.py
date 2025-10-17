@@ -74,14 +74,14 @@ class Map:
     def mushrooms(self):
         return [(x, y, self.map[x][y].name) for x, y in self._mushrooms]
 
-    def spawn_mushroom(self, bug_blaster_pos = None):
+    def spawn_mushroom(self):
         if not self._queue_mushrooms or len(self._queue_mushrooms) == 0:
             logger.warning("No more mushrooms to spawn")
             while len(self._queue_mushrooms) < (self.hor_tiles * self.ver_tiles * 0.1):  # generate packs corresponding to 10% of map
                 x, y = random.randint(0, self.hor_tiles - 1), random.randint(
                     0, self.ver_tiles - BOTTOM_ROWS
                 )
-                if self.map[x][y] == Tiles.PASSAGE and (not bug_blaster_pos or (x,y) != bug_blaster_pos):
+                if self.map[x][y] == Tiles.PASSAGE:
                     self.map[x][y] = Tiles.FOOD
                     self._queue_mushrooms.append((x, y))
         return self._queue_mushrooms.pop(0)
