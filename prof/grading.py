@@ -42,7 +42,7 @@ class Game(db.Model):
     score = db.Column(db.Integer)
     seed = db.Column(db.Integer)
 
-    def __init__(self, player, score, seed, players):
+    def __init__(self, player, score, seed):
         self.player = player
         self.score = score
         self.seed = seed

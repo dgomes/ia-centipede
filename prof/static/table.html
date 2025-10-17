@@ -5,7 +5,7 @@
 "HTML Tidy for HTML5 for Linux version 5.6.0">
 <meta charset="UTF-8">
 <link rel="stylesheet" href="styles.css">
-<title>Snakes Score Board</title>
+<title>Centipede Score Board</title>
 
 <script>
 let all = false
@@ -42,9 +42,6 @@ function generateTable(table, data,page) {
 				ii = document.createTextNode(i); //show position not ID
 				br.appendChild(ii);
                         	cell.appendChild(br);
-			} else if(key == "players") {
-				text = Number(element[key]) - 1
-				cell.appendChild(document.createTextNode(text));
                         } else {
                                 text = element[key];
                         	cell.appendChild(document.createTextNode(text));
@@ -62,7 +59,6 @@ function generateTable(table, data,page) {
 <tr>
 <th>Pos</th>
 <th>Player</th>
-<th>Challengers</th>
 <th>Score</th>
 <th>Timestamp</th>
 </tr>
