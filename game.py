@@ -131,6 +131,7 @@ class Centipede:
                 self.move_dir = 1
             elif self.head[1] >= (mapa.size[1] - 1):
                 self.move_dir = -1
+                vert_y = self.head[1] + self.move_dir
 
             # check if it's blocked vertically
             if 0 <= vert_y < mapa.size[1] and (vert_x, vert_y) not in [
