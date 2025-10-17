@@ -476,8 +476,7 @@ class Game:
             x, y = self.map.spawn_mushroom()
             if (x, y) != self._bug_blaster.pos:
                 self._mushrooms.append(Mushroom(x=x, y=y))
-            else:
-                self.map.map[x][y] = Tiles.PASSAGE
+
 
 
         self._state = {
