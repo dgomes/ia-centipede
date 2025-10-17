@@ -113,6 +113,11 @@ class Centipede:
         if new_pos in [mushroom.pos for mushroom in mushrooms]:
             new_pos = self.head
 
+        # down position
+        down_x = self.head[0]
+        down_y = self.head[1] + self.move_dir
+
+        # wall hit
         if new_pos == self.head or self.reverse_next_move:
             # if we can't move to the new position, we banged against a wall
             logger.debug(
@@ -127,29 +132,29 @@ class Centipede:
             elif self.head[1] >= (mapa.size[1] - 1):
                 self.move_dir = -1
 
-            # try to move down
-            down_pos = (self.head[0], self.head[1] + self.move_dir)
-
-            if down_pos in [m.pos for m in mushrooms]:
-                # can't move down yet
-                # reverse horizontally but remember we want to go down
-                self.waiting_to_move_down = True
-                new_pos = self.head
+            # check if it's blocked bellow
+            if 0 <= down_y < mapa.size[1] and (down_x, down_y) not in [
+                m.pos for m in mushrooms
+            ]:
+                # it goes down on this tick
+                new_pos = (down_x, down_y)
             else:
-                # can move down normally
-                self.waiting_to_move_down = False
-                new_pos = down_pos
+                # can't go down right now, set up a debt
+                new_pos = self.head
+                self.waiting_to_move_down = True
 
             self._direction = (
                 Direction.EAST if self.direction == Direction.WEST else Direction.WEST
             )
             self.reverse_next_move = False
 
-        # in each step, check if we were waiting to move down and can now do so
-        if self.waiting_to_move_down:
-            down_pos = (self.head[0], self.head[1] + self.move_dir)
-            if down_pos not in [m.pos for m in mushrooms]:
-                new_pos = down_pos
+        # debt resolution
+        elif self.waiting_to_move_down:
+            # check if it's blocked bellow
+            if 0 <= down_y < mapa.size[1] and (down_x, down_y) not in [
+                m.pos for m in mushrooms
+            ]:
+                new_pos = (down_x, down_y)
                 self.waiting_to_move_down = False
 
         self._body.append(new_pos)
