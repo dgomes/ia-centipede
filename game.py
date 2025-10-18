@@ -74,13 +74,12 @@ class Centipede:
 
     @property
     def x(self):
-        return self._pos[0]
+        return self.head[0]
 
     @property
     def y(self):
-        return self._pos[1]
+        return self.head[1]
 
-    @property
     def __str__(self) -> str:
         return f"{self.name}({self._body}) - dir={self.direction}"
 
@@ -323,7 +322,7 @@ class Game:
 
     @property
     def total_steps(self):
-        return self._total_steps
+        return self._step
 
     def start(self, players_names):
         logger.debug("Reset world")
