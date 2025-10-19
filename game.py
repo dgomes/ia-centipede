@@ -36,6 +36,7 @@ class Centipede:
         self.range = 3
         self.reverse_next_move = False
         self.move_dir = 1  # 1 means moving down, -1 means moving up
+        self.waiting_to_move_vertically = False
 
     def grow(self, amount=1):
         self.to_grow += amount
@@ -112,6 +113,7 @@ class Centipede:
         if new_pos in [mushroom.pos for mushroom in mushrooms]:
             new_pos = self.head
 
+        # wall hit
         if new_pos == self.head or self.reverse_next_move:
             # if we can't move to the new position, we banged against a wall
             logger.debug(
@@ -125,16 +127,37 @@ class Centipede:
                 self.move_dir = 1
             elif self.head[1] >= (mapa.size[1] - 1):
                 self.move_dir = -1
-            new_pos = (self.head[0], self.head[1] + self.move_dir)
 
-            # check mushroom collisions again and reverse over itself
-            if new_pos in [mushroom.pos for mushroom in mushrooms]:
+            # vertical position
+            new_pos_vert = (self.head[0], self.head[1] + self.move_dir)
+
+            # check if it's blocked vertically
+            if 0 <= new_pos_vert[1] < mapa.size[1] and new_pos_vert not in [
+                m.pos for m in mushrooms
+            ]:
+                # it moves vertically on this tick
+                new_pos = new_pos_vert
+            else:
+                # can't move vertically right now, set up a debt
                 new_pos = self.head
+                self.waiting_to_move_vertically = True
 
             self._direction = (
                 Direction.EAST if self.direction == Direction.WEST else Direction.WEST
             )
             self.reverse_next_move = False
+
+        # debt resolution
+        if self.waiting_to_move_vertically:
+            # recalculate new vertical position
+            new_pos_vert = (self.head[0], self.head[1] + self.move_dir)
+
+            # check if it's blocked vertically
+            if 0 <= new_pos_vert[1] < mapa.size[1] and new_pos_vert not in [
+                m.pos for m in mushrooms
+            ]:
+                new_pos = new_pos_vert
+                self.waiting_to_move_vertically = False
 
         self._body.append(new_pos)
         self._body.pop(0)
