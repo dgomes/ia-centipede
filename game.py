@@ -113,9 +113,6 @@ class Centipede:
         if new_pos in [mushroom.pos for mushroom in mushrooms]:
             new_pos = self.head
 
-        # vertical position
-        new_pos_vert = (self.head[0], self.head[1] + self.move_dir)
-
         # wall hit
         if new_pos == self.head or self.reverse_next_move:
             # if we can't move to the new position, we banged against a wall
@@ -131,7 +128,7 @@ class Centipede:
             elif self.head[1] >= (mapa.size[1] - 1):
                 self.move_dir = -1
 
-            # recalculate new position vertically
+            # vertical position
             new_pos_vert = (self.head[0], self.head[1] + self.move_dir)
 
             # check if it's blocked vertically
@@ -141,7 +138,7 @@ class Centipede:
                 # it moves vertically on this tick
                 new_pos = new_pos_vert
             else:
-                # can't move vertcally right now, set up a debt
+                # can't move vertically right now, set up a debt
                 new_pos = self.head
                 self.waiting_to_move_vertically = True
 
@@ -151,7 +148,10 @@ class Centipede:
             self.reverse_next_move = False
 
         # debt resolution
-        elif self.waiting_to_move_vertically:
+        if self.waiting_to_move_vertically:
+            # recalculate new vertical position
+            new_pos_vert = (self.head[0], self.head[1] + self.move_dir)
+
             # check if it's blocked vertically
             if 0 <= new_pos_vert[1] < mapa.size[1] and new_pos_vert not in [
                 m.pos for m in mushrooms
