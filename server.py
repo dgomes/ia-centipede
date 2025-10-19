@@ -202,7 +202,6 @@ class GameServer:
                             game_record = {
                                 "player": player.name,
                                 "score": self.game.score,
-                                "players": self.number_of_players,
                             }
                             requests.post(self.grading, json=game_record, timeout=2)
                 except RequestException as err:

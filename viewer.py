@@ -21,6 +21,7 @@ from viewer.common import (
     int2dir,
 )
 from viewer.sprites import (
+    BACKGROUND_COLOR,
     BlastSprite,
     BugBlasterSprite,
     Info,
@@ -209,7 +210,7 @@ async def main(SCALE):
         new_game = False
 
         # Render Window
-        display.fill("white")
+        display.fill(BACKGROUND_COLOR)
 
         try:
             all_sprites.update()
