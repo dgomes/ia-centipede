@@ -50,7 +50,7 @@ async def test_centipede_moves_down_after_trap():
 
 @pytest.mark.asyncio
 async def test_centipede_moves_up_after_trap():
-    """Ensure centipede is not stuck when blocked by mushrooms while moving down."""
+    """Ensure centipede is not stuck when blocked by mushrooms while moving up."""
 
     game = Game(timeout=300)
     game.start(["tester"])
@@ -67,7 +67,7 @@ async def test_centipede_moves_up_after_trap():
         (cx - 3, cy),
     ]
     centipede = Centipede("debug_down", centipede_body, Direction.EAST)
-    centipede.move_dir = -1
+    centipede.move_dir = -1  # moving up
     game._centipedes.append(centipede)
 
     game._mushrooms = [
