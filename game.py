@@ -4,6 +4,7 @@ import random
 from collections import deque
 from unicodedata import name
 
+
 from consts import (
     KILL_CENTIPEDE_BODY_POINTS,
     TIMEOUT,
@@ -496,7 +497,9 @@ class Game:
         if self._step % MUSHROOM_SPAWN_RATE == 0:
             logger.info("Spawning new mushroom")
             x, y = self.map.spawn_mushroom()
-            self._mushrooms.append(Mushroom(x=x, y=y))
+            if (x, y) != self._bug_blaster.pos:
+                self._mushrooms.append(Mushroom(x=x, y=y))
+
 
 
         self._state = {
