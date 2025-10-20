@@ -3,7 +3,6 @@ import logging
 import random
 from collections import deque
 from unicodedata import name
-from consts import Tiles
 
 
 from consts import (

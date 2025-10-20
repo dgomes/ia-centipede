@@ -14,7 +14,7 @@ class Map:
         level=1,
         size=(100, 100),
         mushroom_percentage=0.1,  # TODO set to 0.1
-        mapa=None
+        mapa=None,
     ):
         self._level = level
         self._size = size
