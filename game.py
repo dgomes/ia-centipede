@@ -396,13 +396,14 @@ class Game:
             assert lastkey in "wasdA"
 
             # Update position
-            self._bug_blaster.move(
-                self.map,
-                key2direction(lastkey)
-                if lastkey in "wasd"
-                else self._bug_blaster.direction,
-                self._mushrooms,
-            )
+            if lastkey in "wasd":
+                self._bug_blaster.move(
+                    self.map,
+                    key2direction(lastkey)
+                    if lastkey in "wasd"
+                    else self._bug_blaster.direction,
+                    self._mushrooms,
+                )
 
             # Shoot
             if lastkey == "A" and self._cooldown == 0:
