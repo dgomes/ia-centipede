@@ -88,7 +88,9 @@ class GameServer:
 
         original_group = group
         if isinstance(group, dict):
-            group = group.keys()
+            group = list(group.keys())
+        else:
+            group = list(group)
 
         for client in group:
             try:
@@ -100,7 +102,7 @@ class GameServer:
             if isinstance(original_group, dict):
                 del original_group[client]
             else:
-                original_group.remove(client)
+                original_group.discard(client)
             await client.close()
 
     async def incomming_handler(self, websocket: WebSocketCommonProtocol, path: str):
