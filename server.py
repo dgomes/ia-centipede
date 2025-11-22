@@ -88,7 +88,9 @@ class GameServer:
 
         original_group = group
         if isinstance(group, dict):
-            group = group.keys()
+            group = list(group.keys())
+        else:
+            group = list(group)
 
         for client in group:
             try:
@@ -96,12 +98,12 @@ class GameServer:
             except Exception:
                 logger.error("Could not send %s to client %s, removing", info, client)
                 to_remove.append(client)
-                await client.close()
         for client in to_remove:
             if isinstance(original_group, dict):
                 del original_group[client]
             else:
-                original_group.remove(client)
+                original_group.discard(client)
+            await client.close()
 
     async def incomming_handler(self, websocket: WebSocketCommonProtocol, path: str):
         """Process new clients arriving at the server."""
@@ -202,7 +204,6 @@ class GameServer:
                             game_record = {
                                 "player": player.name,
                                 "score": self.game.score,
-                                "players": self.number_of_players,
                             }
                             requests.post(self.grading, json=game_record, timeout=2)
                 except RequestException as err:
