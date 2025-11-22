@@ -27,6 +27,11 @@ limiter = Limiter(
         storage_uri="memory://",
         )
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
+
 flask_log = logging.getLogger("werkzeug")
 flask_log.setLevel(logging.WARNING)
 
