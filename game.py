@@ -496,12 +496,12 @@ class Game:
 
     def update_blasts(self):
         self._blasts = [(b_x, b_y - 1) for (b_x, b_y) in self._blasts if b_y - 1 >= 0]
-        to_be_removed = []
+        to_be_removed = set()
 
         for blast in self._blasts:
             for mushroom in self._mushrooms:
                 if mushroom.collision(blast):
-                    to_be_removed.append(blast)
+                    to_be_removed.add(blast)
                     mushroom.take_damage()
                     logger.debug("Mushroom %s was hit by a blast", mushroom)
                     if not mushroom.exists():
@@ -510,13 +510,13 @@ class Game:
                     break
 
             if self._spider.exists() and blast == self._spider.pos:
-                to_be_removed.append(blast)
+                to_be_removed.add(blast)
                 self._spider.kill()
                 self._score += KILL_SPIDER_POINTS
                 logger.debug("Spider was hit by a blast", self._spider)
 
             if self._flee and self._flee.exists() and blast == self._flee.pos:
-                to_be_removed.append(blast)
+                to_be_removed.add(blast)
                 self._flee.kill()
                 self._score += KILL_FLEE_POINTS
                 logger.debug("Flee was hit by a blast", self._flee)
@@ -568,7 +568,7 @@ class Game:
                 continue
 
             # check collisions with blasters
-            to_be_removed = []
+            to_be_removed = set()
             for blast in self._blasts:
                 if centipede.collision(blast):
                     if (new_body := centipede.take_hit(blast)) != []:
@@ -590,7 +590,7 @@ class Game:
 
                     self._mushrooms.append(Mushroom(x=blast[0], y=blast[1]))
 
-                    to_be_removed.append(blast)
+                    to_be_removed.add(blast)
             self._blasts = [b for b in self._blasts if b not in to_be_removed]
 
             # check collisions with bug blaster
