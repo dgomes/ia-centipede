@@ -474,7 +474,19 @@ class Game:
         if self._flee.pos == self._bug_blaster.pos:
             self._bug_blaster.kill()
             logger.info("BugBlaster was killed by flee at %s", self._flee.pos)
-     
+
+        blasts_to_remove = set()
+        for blast in self._blasts:
+            if blast == self._flee.pos:
+                blasts_to_remove.add(blast)
+                self._flee.kill()
+                self._score += KILL_FLEE_POINTS
+                logger.info("Flee was hit by a blast at %s", self._flee.pos)
+                continue
+
+        for blast in blasts_to_remove:
+            logger.debug("Blast %s removed after hitting flee", blast)
+            self._blasts.remove(blast)
 
     def update_spider(self):
         if not self._spider.exists():
