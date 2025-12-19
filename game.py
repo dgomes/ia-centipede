@@ -470,6 +470,9 @@ class Game:
             return  # if flee doesn't exist, we don't need to update it
 
         self._flee.move(self.map)
+        # If flea already left the map cannot kill bug blaster
+        if not self._flee.exists():
+            return 
 
         if self._flee.pos == self._bug_blaster.pos:
             self._bug_blaster.kill()
